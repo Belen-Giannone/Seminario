@@ -22,8 +22,8 @@ export default function PatientMenu() {
           <p>Selecciona servicio, profesional, fecha y realiza el pago de la reserva.</p>
         </div>
 
-        {/* Opción 2: Mis Turnos */}
-        <div className="menu-card" onClick={() => navigate('/patient/my-appointments')}>
+        {/* Opción 2: Gestionar mis Turnos */}
+        <div className="menu-card" onClick={() => navigate('/patient/manage-appointment')}>
           <div className="card-icon">📋</div>
           <h2>Gestionar mis Turnos</h2>
           <p>Consulta tus turnos vigentes, reprograma o cancela tus citas.</p>
