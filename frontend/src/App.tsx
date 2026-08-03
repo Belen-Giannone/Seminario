@@ -5,6 +5,8 @@ import PatientMenu from './pages/patient/PatientMenu/PatientMenu'
 import DoctorMenu from './pages/doctor/DoctorMenu/DoctorMenu'
 import AdminMenu from './pages/admin/AdminMenu/AdminMenu'
 import OwnerMenu from './pages/owner/OwnerMenu/OwnerMenu'
+import BookAppointment from './pages/auth/BookAppointment/bookAppointment'
+import ManageAppointment from './pages/auth/ManageAppointment/manageAppointment'
 
 export default function App() {
   return (
@@ -16,6 +18,8 @@ export default function App() {
       <Route path="/doctor" element={<DoctorMenu />} />
       <Route path="/admin" element={<AdminMenu />} />
       <Route path="/owner" element={<OwnerMenu />} />
+      <Route path="/patient/book-appointment" element={<BookAppointment />} />
+      <Route path="/patient/manage-appointment" element={<ManageAppointment />} />
     </Routes>
   )
 }
