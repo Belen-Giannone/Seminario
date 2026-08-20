@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Rol } from '@syssalud/shared-types';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { AuthenticatedRequest } from './jwt-auth.guard';
 
@@ -17,7 +18,7 @@ export class RolesGuard implements CanActivate {
    * @throws {ForbiddenException} Si el usuario no tiene los permisos suficientes.
    */
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+    const requiredRoles = this.reflector.getAllAndOverride<Rol[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -29,7 +30,7 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const user = request.user;
 
-    if (!user || !requiredRoles.includes(user.role)) {
+    if (!user || !requiredRoles.includes(user.rol)) {
       throw new ForbiddenException(
         'Acceso denegado: No posee los permisos necesarios para realizar esta acción',
       );

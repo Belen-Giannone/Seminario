@@ -1,9 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { Roles } from '../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../shared/guards/roles.guard';
-import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard, AuthenticatedRequest } from '../../shared/guards/jwt-auth.guard';
 
 /**
  * Controlador para gestionar las peticiones HTTP relacionadas con la seguridad y acceso (IAM).
@@ -12,6 +11,16 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  /**
+   * CUU01 - Registrar paciente (autorregistro).
+   * @route POST /api/auth/register
+   */
+  @HttpCode(HttpStatus.CREATED)
+  @Post('register')
+  register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
 
   /**
    * Endpoint público para iniciar sesión en SysSalud.
@@ -23,16 +32,14 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  // Ruta de prueba protegida por Rol
   /**
-   * Endpoint protegido de prueba reservado únicamente para el perfil de Asistente Administrativa.
-   * @route GET /api/auth/admin-only
-   * @security Requiere Token JWT de un usuario con rol 'ADMINISTRATIVO'.
+   * Devuelve el perfil del usuario autenticado a partir del token vigente.
+   * Lo usa el frontend para restaurar la sesión al recargar la página.
+   * @route GET /api/auth/me
    */
-  @Get('admin-only')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMINISTRATIVO')
-  getAdminPanel() {
-    return { message: 'Acceso concedido al Panel Administrativo de SysSalud' };
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  me(@Req() req: AuthenticatedRequest) {
+    return this.authService.perfilDesdeToken(req.user!.sub);
   }
 }

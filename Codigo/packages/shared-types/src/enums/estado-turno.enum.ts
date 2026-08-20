@@ -1,0 +1,11 @@
+/**
+ * Estados del turno según la máquina de estados (ART ME).
+ */
+export enum EstadoTurno {
+  RESERVADO = 'RESERVADO',
+  CONFIRMADO = 'CONFIRMADO',
+  REPROGRAMADO = 'REPROGRAMADO',
+  CANCELADO = 'CANCELADO',
+  CANCELADO_SIN_DEVOLUCION = 'CANCELADO_SIN_DEVOLUCION',
+  FINALIZADO = 'FINALIZADO',
+}

@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+build/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# os / editor
+.DS_Store
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# logs
+*.log
+npm-debug.log*
+
+# db data (bind-mounted volumes, si se usan)
+pgdata/

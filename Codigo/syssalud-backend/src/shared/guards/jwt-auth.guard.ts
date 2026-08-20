@@ -6,15 +6,16 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { Rol } from '@syssalud/shared-types';
 
 /**
  * Interfaz para extender la solicitud de Express e incluir el usuario autenticado.
  */
 export interface AuthenticatedRequest extends Request {
   user?: {
-    sub: number;
+    sub: string;
     email: string;
-    role: string;
+    rol: Rol;
     nombre: string;
   };
 }

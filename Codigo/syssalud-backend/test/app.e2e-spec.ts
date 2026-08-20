@@ -4,6 +4,8 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
+// Requiere Postgres levantado (`npm run db:up` desde la raíz) porque el
+// AppModule completo abre la conexión TypeORM al inicializarse.
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
 
@@ -13,14 +15,17 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api');
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/api (GET) responde estado ok', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api')
       .expect(200)
-      .expect('Hello World!');
+      .expect((res) => {
+        expect(res.body.estado).toBe('ok');
+      });
   });
 
   afterEach(async () => {

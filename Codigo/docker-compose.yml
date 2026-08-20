@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: syssalud-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: syssalud
+      POSTGRES_USER: syssalud
+      POSTGRES_PASSWORD: syssalud
+    ports:
+      - "5432:5432"
+    volumes:
+      - syssalud_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U syssalud"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  syssalud_pg_data:

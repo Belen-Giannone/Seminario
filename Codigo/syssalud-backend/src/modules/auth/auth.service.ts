@@ -1,45 +1,99 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
+import { Repository } from 'typeorm';
+import { AuthResponse, Rol, UsuarioPerfil } from '@syssalud/shared-types';
+import { Usuario } from './entities/usuario.entity';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 /**
- * Servicio encargado de gestionar la lógica de negocio para la autenticación,
- * verificación de credenciales y generación de tokens de acceso en el sistema.
+ * Lógica de negocio de autenticación (CUU01 autorregistro, login) y emisión
+ * de JWT para el resto del sistema.
  */
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    @InjectRepository(Usuario)
+    private readonly usuarios: Repository<Usuario>,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  // Usuarios simulados para la etapa inicial
-  /** Listado simulado de usuarios para pruebas iniciales del sistema */
-  private readonly mockUsers = [
-    { id: 1, email: 'paciente@syssalud.com', role: 'PACIENTE', nombre: 'Juan Pérez' },
-    { id: 2, email: 'medico@syssalud.com', role: 'PROFESIONAL', nombre: 'Dra. María González' },
-    { id: 3, email: 'admin@syssalud.com', role: 'ADMINISTRATIVO', nombre: 'Carlos Asistente' },
-  ];
-
-  /**
-   * Autentica a un usuario según sus credenciales y genera un Token JWT.
-   * 
-   * @param loginDto Datos con correo y contraseña.
-   * @returns Promesa con el mensaje de confirmación, token de acceso y perfil básico del usuario.
-   * @throws {UnauthorizedException} Si el email no existe o la contraseña es incorrecta.
-   */
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
-
-    const user = this.mockUsers.find((u) => u.email === email);
-    if (!user || password !== '123456') {
-      throw new UnauthorizedException('Credenciales inválidas');
+  /** CUU01 - camino alternativo 2.a: el paciente se registra por sí mismo. */
+  async register(dto: RegisterDto): Promise<AuthResponse> {
+    const existente = await this.usuarios.findOne({
+      where: [{ email: dto.email }, { dni: dto.dni }],
+    });
+    if (existente) {
+      // CUU01 3.a - El paciente ya está registrado
+      throw new ConflictException(
+        'Ya existe un usuario registrado con ese email o DNI',
+      );
     }
 
-    // Payload que se codifica dentro del JWT Token para validaciones posteriores
-    const payload = { sub: user.id, email: user.email, role: user.role, nombre: user.nombre };
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const usuario = await this.usuarios.save(
+      this.usuarios.create({
+        nombre: dto.nombre,
+        apellido: dto.apellido,
+        dni: dto.dni,
+        fechaNacimiento: dto.fechaNacimiento,
+        telefono: dto.telefono,
+        domicilio: dto.domicilio,
+        email: dto.email,
+        passwordHash,
+        rol: Rol.PACIENTE,
+      }),
+    );
 
+    return this.emitirSesion(usuario);
+  }
+
+  /** Login unificado para los cuatro roles del sistema (RN04, RN05). */
+  async login(dto: LoginDto): Promise<AuthResponse> {
+    const usuario = await this.usuarios.findOne({ where: { email: dto.email } });
+    if (!usuario || !(await bcrypt.compare(dto.password, usuario.passwordHash))) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+    return this.emitirSesion(usuario);
+  }
+
+  /** Recupera el perfil actualizado a partir del payload del JWT (GET /auth/me). */
+  async perfilDesdeToken(usuarioId: string): Promise<UsuarioPerfil> {
+    const usuario = await this.usuarios.findOne({ where: { id: usuarioId } });
+    if (!usuario) {
+      throw new UnauthorizedException('El usuario ya no existe');
+    }
+    return this.aPerfil(usuario);
+  }
+
+  private async emitirSesion(usuario: Usuario): Promise<AuthResponse> {
+    const perfil = this.aPerfil(usuario);
+    const accessToken = await this.jwtService.signAsync({
+      sub: usuario.id,
+      email: usuario.email,
+      rol: usuario.rol,
+      nombre: usuario.nombre,
+    });
+    return { accessToken, usuario: perfil };
+  }
+
+  private aPerfil(usuario: Usuario): UsuarioPerfil {
     return {
-      message: 'Inicio de sesión exitoso',
-      access_token: await this.jwtService.signAsync(payload),
-      user: { id: user.id, email: user.email, role: user.role, nombre: user.nombre },
+      id: usuario.id,
+      email: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      rol: usuario.rol,
+      dni: usuario.dni,
+      telefono: usuario.telefono,
+      domicilio: usuario.domicilio,
+      fechaNacimiento: usuario.fechaNacimiento,
     };
   }
 }

@@ -1,10 +1,11 @@
+import { LoginRequest } from '@syssalud/shared-types';
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 /**
  * Objeto de Transferencia de Datos (DTO) para la autenticación de usuarios.
  * Define la estructura y reglas de validación necesarias para iniciar sesión.
  */
-export class LoginDto {
+export class LoginDto implements LoginRequest {
   /**
    * Correo electrónico registrado del usuario.
    * Debe cumplir con un formato de email válido.
