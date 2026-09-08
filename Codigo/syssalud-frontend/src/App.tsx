@@ -3,6 +3,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './lib/auth-context';
 import { ThemeProvider } from './lib/theme-context';
 import { DashboardPage } from './pages/DashboardPage';
+import { HistoriaClinicaPage } from './pages/HistoriaClinicaPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -21,6 +22,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/historia-clinica"
+              element={
+                <ProtectedRoute>
+                  <HistoriaClinicaPage />
                 </ProtectedRoute>
               }
             />

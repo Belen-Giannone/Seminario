@@ -1,4 +1,5 @@
 import { Rol } from '@syssalud/shared-types';
+import { Link } from 'react-router-dom';
 import { Brand } from '../components/Brand';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { useAuth } from '../lib/auth-context';
@@ -84,9 +85,13 @@ export function DashboardPage() {
                 <div>
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium text-slate-900 dark:text-slate-50">{modulo.nombre}</h3>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                      Próximamente
-                    </span>
+                    {modulo.nombre === 'Historia clínica' && usuario.rol === Rol.PROFESIONAL ? (
+                      <Link to="/historia-clinica" className="rounded-full bg-teal-50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-teal-700 dark:bg-teal-500/10 dark:text-teal-300">Abrir</Link>
+                    ) : (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        Próximamente
+                      </span>
+                    )}
                   </div>
                   <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{modulo.descripcion}</p>
                 </div>

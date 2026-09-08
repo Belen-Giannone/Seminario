@@ -9,6 +9,5 @@ import { HistoriaClinicaService } from './historia-clinica.service';
 @Module({
   controllers: [HistoriaClinicaController],
   providers: [HistoriaClinicaService],
-  exports: [HistoriaClinicaService],
 })
 export class HistoriaClinicaModule {}

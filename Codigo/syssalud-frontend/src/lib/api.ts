@@ -5,6 +5,33 @@ import type {
   UsuarioPerfil,
 } from '@syssalud/shared-types';
 
+export interface EntradaClinica {
+  id: string;
+  turnoId: string | null;
+  fecha: string;
+  observaciones: string;
+  antecedentes: string;
+  tratamientos: string;
+  fechaActualizacion: string;
+  profesionalId: string;
+}
+
+export interface HistoriaClinica {
+  idHistoria: string;
+  pacienteId: string;
+  nomAppPac: string | null;
+  telefono: string | null;
+  correo: string | null;
+  entradas: EntradaClinica[];
+}
+
+interface CrearEntradaRequest {
+  observaciones: string;
+  antecedentes: string;
+  tratamientos: string;
+  turnoId?: string;
+}
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 class ApiError extends Error {
@@ -58,6 +85,21 @@ export const api = {
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
+
+  historiaClinica: {
+    buscar: (criterio: string, token: string) =>
+      request<HistoriaClinica>(`/historia-clinica?buscar=${encodeURIComponent(criterio)}`, {}, token),
+    obtener: (pacienteId: string, token: string) =>
+      request<HistoriaClinica>(`/historia-clinica/${encodeURIComponent(pacienteId)}`, {}, token),
+    inicializar: (pacienteId: string, token: string) =>
+      request<HistoriaClinica>(`/historia-clinica/${encodeURIComponent(pacienteId)}`, { method: 'POST' }, token),
+    agregarEntrada: (pacienteId: string, data: CrearEntradaRequest, token: string) =>
+      request<{ mensaje: string; entrada: EntradaClinica }>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}/entradas`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+  },
 };
 
 export { ApiError };
