@@ -5,4 +5,10 @@ export { EstadoTurno } from './enums/estado-turno.enum';
 export { EstadoPago } from './enums/estado-pago.enum';
 export { MetodoPago } from './enums/metodo-pago.enum';
 export type { UsuarioPerfil } from './dto/usuario.dto';
-export type { LoginRequest, RegisterPacienteRequest, AuthResponse } from './dto/auth.dto';
+export type {
+  LoginRequest,
+  RegisterPacienteRequest,
+  AuthResponse,
+} from './dto/auth.dto';
+export * from './enums/paciente.enum';
+export * from './dto/paciente.dto';

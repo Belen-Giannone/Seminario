@@ -1,0 +1,10 @@
+export enum EstadoPaciente {
+  ACTIVO = 'ACTIVO',
+  PENDIENTE_CREDENCIALES = 'PENDIENTE_CREDENCIALES',
+  INACTIVO = 'INACTIVO',
+}
+
+export enum AltaPor {
+  ADM = 'ADM',
+  AUTORREGISTRO = 'AUTORREGISTRO',
+}
