@@ -32,6 +32,13 @@ interface CrearEntradaRequest {
   turnoId?: string;
 }
 
+export interface BuscarHistoriaQuery {
+  buscar?: string;
+  dni?: string;
+  nombre?: string;
+  apellido?: string;
+}
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 class ApiError extends Error {
@@ -87,8 +94,13 @@ export const api = {
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
 
   historiaClinica: {
-    buscar: (criterio: string, token: string) =>
-      request<HistoriaClinica>(`/historia-clinica?buscar=${encodeURIComponent(criterio)}`, {}, token),
+    buscar: (query: BuscarHistoriaQuery, token: string) => {
+      const params = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value?.trim()) params.set(key, value.trim());
+      });
+      return request<HistoriaClinica>(`/historia-clinica?${params}`, {}, token);
+    },
     obtener: (pacienteId: string, token: string) =>
       request<HistoriaClinica>(`/historia-clinica/${encodeURIComponent(pacienteId)}`, {}, token),
     inicializar: (pacienteId: string, token: string) =>

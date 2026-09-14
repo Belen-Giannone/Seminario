@@ -14,6 +14,7 @@ import { Rol } from '@syssalud/shared-types';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { AuthenticatedRequest, JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
+import { CrearEntradaDto } from './dto/crear-entrada.dto';
 import { HistoriaClinicaService } from './historia-clinica.service';
 
 @Controller('historia-clinica')
@@ -28,8 +29,13 @@ export class HistoriaClinicaController {
   }
 
   @Get()
-  buscar(@Query('buscar') criterio: string) {
-    return this.historiaClinicaService.buscar(criterio);
+  buscar(
+    @Query('buscar') buscar?: string,
+    @Query('dni') dni?: string,
+    @Query('nombre') nombre?: string,
+    @Query('apellido') apellido?: string,
+  ) {
+    return this.historiaClinicaService.buscar({ buscar, dni, nombre, apellido });
   }
 
   @Get(':pacienteId')
@@ -47,7 +53,7 @@ export class HistoriaClinicaController {
   @HttpCode(HttpStatus.CREATED)
   async agregarEntrada(
     @Param('pacienteId') pacienteId: string,
-    @Body() dto: { observaciones: string; antecedentes: string; tratamientos: string; turnoId?: string },
+    @Body() dto: CrearEntradaDto,
     @Req() request: AuthenticatedRequest,
   ) {
     const entrada = await this.historiaClinicaService.agregarEntrada(

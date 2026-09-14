@@ -9,6 +9,8 @@ import { ApiError, api, type HistoriaClinica } from '../lib/api';
 export function HistoriaClinicaPage() {
   const { usuario, token, logout } = useAuth();
   const [criterio, setCriterio] = useState('');
+  const [tipoBusqueda, setTipoBusqueda] = useState<'dni' | 'nombre' | 'buscar'>('dni');
+  const [apellido, setApellido] = useState('');
   const [historia, setHistoria] = useState<HistoriaClinica | null>(null);
   const [form, setForm] = useState({ observaciones: '', antecedentes: '', tratamientos: '', turnoId: '' });
   const [mensaje, setMensaje] = useState('');
@@ -30,7 +32,18 @@ export function HistoriaClinicaPage() {
   const buscar = (event: FormEvent) => {
     event.preventDefault();
     void ejecutar(async () => {
-      const resultado = await api.historiaClinica.buscar(criterio, token);
+      const resultado = await api.historiaClinica.buscar(
+        tipoBusqueda === 'dni'
+          ? { dni: criterio }
+          : tipoBusqueda === 'nombre'
+            ? { nombre: criterio, apellido }
+            : { buscar: criterio },
+        token,
+      );
+      if (Array.isArray(resultado)) {
+        setError('Se encontraron varios pacientes. Elegí uno para continuar.');
+        return;
+      }
       setHistoria(resultado);
     });
   };
@@ -64,9 +77,11 @@ export function HistoriaClinicaPage() {
       <main className="mx-auto max-w-5xl px-6 py-10">
         <p className="font-mono text-xs uppercase text-teal-600 dark:text-teal-400">CUU09 · RN10</p>
         <h1 className="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-50">Gestionar historia clínica</h1>
-        <p className="mt-2 text-slate-500 dark:text-slate-400">Buscá un paciente por su identificador.</p>
+        <p className="mt-2 text-slate-500 dark:text-slate-400">Buscá un paciente por DNI o nombre y apellido.</p>
         <form onSubmit={buscar} className="mt-8 flex gap-3 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-          <input value={criterio} onChange={(event) => setCriterio(event.target.value)} placeholder="pacienteId" className="min-w-0 flex-1 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm dark:border-slate-700" />
+          <select value={tipoBusqueda} onChange={(event) => setTipoBusqueda(event.target.value as typeof tipoBusqueda)} className="rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm dark:border-slate-700"><option value="dni">DNI</option><option value="nombre">Nombre y apellido</option><option value="buscar">Identificador</option></select>
+          <input value={criterio} onChange={(event) => setCriterio(event.target.value)} placeholder={tipoBusqueda === 'dni' ? 'DNI' : tipoBusqueda === 'nombre' ? 'Nombre' : 'pacienteId'} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm dark:border-slate-700" />
+          {tipoBusqueda === 'nombre' && <input value={apellido} onChange={(event) => setApellido(event.target.value)} placeholder="Apellido" className="min-w-0 flex-1 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm dark:border-slate-700" />}
           <button type="submit" className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white">Buscar</button>
           <button type="button" onClick={inicializar} disabled={!criterio} className="rounded-md border border-teal-600 px-4 py-2 text-sm font-medium text-teal-700 disabled:opacity-40 dark:text-teal-300">Inicializar</button>
         </form>

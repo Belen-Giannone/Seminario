@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { Usuario } from '../modules/auth/entities/usuario.entity';
+import { EntradaClinica } from '../modules/historia-clinica/entities/entrada-clinica.entity';
+import { HistoriaClinica } from '../modules/historia-clinica/entities/historia-clinica.entity';
 
 /**
  * DataSource standalone (fuera del ciclo de vida de Nest) usado por el script
@@ -17,7 +19,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USER || 'syssalud',
   password: process.env.DB_PASSWORD || 'syssalud',
   database: process.env.DB_NAME || 'syssalud',
-  entities: [Usuario],
+  entities: [Usuario, HistoriaClinica, EntradaClinica],
   synchronize: true,
   logging: false,
 };
