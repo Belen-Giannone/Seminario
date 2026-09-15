@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Rol } from '@syssalud/shared-types';
 import { Brand } from '../components/Brand';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -15,11 +16,12 @@ interface ModuloCard {
   descripcion: string;
   cuu: string;
   roles: Rol[];
+  ruta?: string;
 }
 
 const MODULOS: ModuloCard[] = [
   { nombre: 'Turnos', descripcion: 'Solicitar, cancelar y reprogramar turnos.', cuu: 'CUU02–04', roles: [Rol.PACIENTE, Rol.ASISTENTE] },
-  { nombre: 'Agenda', descripcion: 'Consultar la agenda de turnos asignados.', cuu: 'CUU05', roles: [Rol.PROFESIONAL, Rol.ASISTENTE] },
+  { nombre: 'Agenda', descripcion: 'Consultar la agenda de turnos asignados.', cuu: 'CUU05', roles: [Rol.PROFESIONAL, Rol.ASISTENTE], ruta: '/agenda' },
   { nombre: 'Pagos', descripcion: 'Comprobantes y estado de pago de tus turnos.', cuu: 'CUU06', roles: [Rol.PACIENTE, Rol.ASISTENTE] },
   { nombre: 'Pacientes', descripcion: 'Registrar y buscar pacientes del centro.', cuu: 'CUU01', roles: [Rol.ASISTENTE] },
   { nombre: 'Historia clínica', descripcion: 'Consultas, observaciones y antecedentes.', cuu: 'CUU09', roles: [Rol.PROFESIONAL] },
@@ -76,23 +78,40 @@ export function DashboardPage() {
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {modulosVisibles.map((modulo) => (
-              <div
-                key={modulo.nombre}
-                className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-5 opacity-80 transition-theme dark:border-slate-800 dark:bg-slate-900"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-slate-900 dark:text-slate-50">{modulo.nombre}</h3>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                      Próximamente
-                    </span>
+            {modulosVisibles.map((modulo) => {
+              const contenido = (
+                <>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-slate-900 dark:text-slate-50">{modulo.nombre}</h3>
+                      {!modulo.ruta && (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                          Próximamente
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{modulo.descripcion}</p>
                   </div>
-                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{modulo.descripcion}</p>
+                  <p className="mt-4 font-mono text-xs text-slate-400 dark:text-slate-600">{modulo.cuu}</p>
+                </>
+              );
+
+              const className = `flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-5 transition-theme dark:border-slate-800 dark:bg-slate-900 ${
+                modulo.ruta
+                  ? 'hover:border-teal-400 hover:shadow-sm dark:hover:border-teal-600'
+                  : 'opacity-80'
+              }`;
+
+              return modulo.ruta ? (
+                <Link key={modulo.nombre} to={modulo.ruta} className={className}>
+                  {contenido}
+                </Link>
+              ) : (
+                <div key={modulo.nombre} className={className}>
+                  {contenido}
                 </div>
-                <p className="mt-4 font-mono text-xs text-slate-400 dark:text-slate-600">{modulo.cuu}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </main>

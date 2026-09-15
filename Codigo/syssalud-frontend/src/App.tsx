@@ -1,7 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Rol } from '@syssalud/shared-types';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { RoleRoute } from './components/RoleRoute';
 import { AuthProvider } from './lib/auth-context';
 import { ThemeProvider } from './lib/theme-context';
+import { AgendaPage } from './pages/AgendaPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -21,6 +24,16 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agenda"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute roles={[Rol.PROFESIONAL, Rol.ASISTENTE]}>
+                    <AgendaPage />
+                  </RoleRoute>
                 </ProtectedRoute>
               }
             />

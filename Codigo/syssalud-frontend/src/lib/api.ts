@@ -1,7 +1,11 @@
 import type {
+  AgendaProfesional,
   AuthResponse,
+  ConsultarAgendaQuery,
+  DisponibilidadQuery,
   LoginRequest,
   RegisterPacienteRequest,
+  SlotDisponible,
   UsuarioPerfil,
 } from '@syssalud/shared-types';
 
@@ -50,6 +54,12 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   return (await res.json()) as T;
 }
 
+/** Arma un querystring salteando claves vacías/indefinidas (p. ej. `periodo` opcional). */
+function aQueryString(params: Record<string, string | undefined>): string {
+  const entradas = Object.entries(params).filter(([, v]) => v !== undefined && v !== '');
+  return new URLSearchParams(entradas as [string, string][]).toString();
+}
+
 export const api = {
   login: (data: LoginRequest) =>
     request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
@@ -58,6 +68,29 @@ export const api = {
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
+
+  /** Módulo Agenda — CUU05 (AGE-027). */
+  agenda: {
+    /** `GET /agenda/:profesionalId` (ASISTENTE cualquiera, PROFESIONAL sólo la propia). */
+    deProfesional: (profesionalId: string, query: Omit<ConsultarAgendaQuery, 'profesionalId'>, token: string) =>
+      request<AgendaProfesional>(
+        `/agenda/${profesionalId}?${aQueryString(query)}`,
+        { method: 'GET' },
+        token,
+      ),
+
+    /** `GET /agenda/mi-agenda` — atajo del profesional autenticado. */
+    miAgenda: (query: Omit<ConsultarAgendaQuery, 'profesionalId'>, token: string) =>
+      request<AgendaProfesional>(`/agenda/mi-agenda?${aQueryString(query)}`, { method: 'GET' }, token),
+
+    /** `GET /agenda/:profesionalId/disponibilidad` — slots libres para agendar un turno. */
+    disponibilidad: (profesionalId: string, query: Omit<DisponibilidadQuery, 'profesionalId'>, token: string) =>
+      request<SlotDisponible[]>(
+        `/agenda/${profesionalId}/disponibilidad?${aQueryString(query)}`,
+        { method: 'GET' },
+        token,
+      ),
+  },
 };
 
 export { ApiError };
