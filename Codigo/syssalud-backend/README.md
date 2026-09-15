@@ -57,6 +57,34 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Módulos
+
+### Agenda (`/api/agenda`) — CUU05
+
+Módulo de sólo lectura, sin entidad propia (AGE-005): recalcula la disponibilidad y
+la agenda de turnos on-demand combinando tres costuras REST salientes —
+Profesionales (horarios y existencia), Turnos (ocupación) y Servicios (duración) —
+más un dataset local de feriados (RN08). Ver `docs/modulo-agenda-requerimientos.md`
+para el detalle de requerimientos (AGE-001…AGE-035).
+
+Endpoints:
+
+- `GET /api/agenda/_estado` — readiness: estado de configuración de cada costura y modo (`lenient`/`strict`).
+- `GET /api/agenda/mi-agenda?desde=&hasta=&periodo=` — atajo para el `PROFESIONAL` autenticado (su propia agenda).
+- `GET /api/agenda/:profesionalId?desde=&hasta=&periodo=dia|semana|mes` — agenda de un profesional (fecha, hora, paciente, servicio). `PROFESIONAL` (sólo la propia) o `ASISTENTE` (cualquiera).
+- `GET /api/agenda/:profesionalId/disponibilidad?servicioId=&desde=&hasta=` — slots libres para agendar un turno, en bloques del tamaño de `servicioId`. Excluye fines de semana (RN07) y feriados (RN08); descuenta ocupación (RN09). Lista vacía = sin disponibilidad (RN19), no es error. Cualquier usuario autenticado.
+
+Variables de entorno (ver `.env.example`): `PROFESIONALES_API_URL`, `TURNOS_API_URL`,
+`SERVICIOS_API_URL`, `FERIADOS_API_URL` (opcional), `AGENDA_MODO` (`lenient` por
+defecto: ante una costura caída degrada con `WARN`; `strict`: responde `424`),
+`AGENDA_CACHE_TTL_S` (caché corta en memoria por `(recurso, rango)`, default 60s).
+
+Si Profesionales/Turnos/Servicios todavía no están implementados (como en esta
+rama), las costuras degradan de forma elegante en vez de romper el endpoint: sin
+horarios base la disponibilidad queda vacía, sin ocupación de Turnos se asume 0
+turnos ocupados (`ocupacionParcial: true`), sin duración de Servicios se usa el
+bloque de agenda por defecto (`BLOQUE_AGENDA_MIN`, `@syssalud/shared-types`).
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.

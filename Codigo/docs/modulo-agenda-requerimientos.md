@@ -2,7 +2,7 @@
 
 **Caso de uso cubierto:** CUU05 — Consultar agenda. Además provee la **disponibilidad de horarios** que consumen CUU02 (solicitar turno) y CUU04 (reprogramar).
 **Pareja responsable:** Pareja C (Agenda & Turnos) — lado lectura.
-**Estado actual:** esqueleto (`agenda.module.ts`, `agenda.controller.ts` con `GET /agenda` de ping, `agenda.service.ts` con `estado()`). **Sin entidad propia**: la agenda es una vista derivada de Profesionales (horarios) + Turnos (ocupación) + feriados.
+**Estado actual:** implementado — backend (`GET /api/agenda/_estado`, `/mi-agenda`, `/:profesionalId`, `/:profesionalId/disponibilidad`, clientes REST con degradación AGE-016…019, cálculo de rejilla en `agenda-calculo.util.ts`, tests AGE-029/030/031) y frontend del panel "Gestionar Agenda" (AGE-026/027: `AgendaPage.tsx`, `api.agenda.*`). Pendiente: AGE-025 (selector de disponibilidad en la pantalla de solicitud de turno, parte del flujo de Turnos) y AGE-032 (e2e real, requiere que Profesionales/Turnos/Servicios existan). **Sin entidad propia**: la agenda es una vista derivada de Profesionales (horarios) + Turnos (ocupación) + feriados.
 **Referencia de arquitectura:** `docs/_comun-arquitectura.md`.
 
 ## Contexto de negocio
