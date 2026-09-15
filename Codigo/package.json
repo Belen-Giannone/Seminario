@@ -13,6 +13,7 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "seed": "npm run seed --workspace=syssalud-backend",
+    "mock:costuras": "node scripts/mock-costuras.js",
     "dev:backend": "npm run start:dev --workspace=syssalud-backend",
     "dev:frontend": "npm run dev --workspace=syssalud-frontend",
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
