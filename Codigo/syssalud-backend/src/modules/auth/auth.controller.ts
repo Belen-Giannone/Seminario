@@ -1,8 +1,20 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { JwtAuthGuard, AuthenticatedRequest } from '../../shared/guards/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  AuthenticatedRequest,
+} from '../../shared/guards/jwt-auth.guard';
 
 /**
  * Controlador para gestionar las peticiones HTTP relacionadas con la seguridad y acceso (IAM).
@@ -40,6 +52,6 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   me(@Req() req: AuthenticatedRequest) {
-    return this.authService.perfilDesdeToken(req.user!.sub);
+    return this.authService.perfilDesdeToken(req.user.sub);
   }
 }

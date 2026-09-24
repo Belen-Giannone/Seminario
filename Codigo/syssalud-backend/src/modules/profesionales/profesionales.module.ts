@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { HorarioAtencion } from './entities/horario-atencion.entity';
+import { Profesional } from './entities/profesional.entity';
 import { ProfesionalesController } from './profesionales.controller';
 import { ProfesionalesService } from './profesionales.service';
 
-/** Módulo Profesionales — alta y horarios de atención (insumo de Agenda). */
 @Module({
+  imports: [TypeOrmModule.forFeature([Profesional, HorarioAtencion])],
   controllers: [ProfesionalesController],
   providers: [ProfesionalesService],
   exports: [ProfesionalesService],

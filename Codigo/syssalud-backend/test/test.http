@@ -1,0 +1,46 @@
+POST http://localhost:4000/api/auth/login
+Content-Type: application/json
+
+{ "email": "asistente@syssalud.com", "password": "Syssalud2026!" }
+
+### Login como el profesional del seed (para sacar su id)
+# @name loginProf
+POST http://localhost:4000/api/auth/login
+Content-Type: application/json
+
+{ "email": "profesional@syssalud.com", "password": "Syssalud2026!" }
+
+### Ver mis datos (trae el id)
+GET http://localhost:4000/api/auth/me
+Authorization: Bearer {{loginProf.response.body.$.accessToken}}
+
+### Login como asistente
+# @name login
+POST http://localhost:4000/api/auth/login
+Content-Type: application/json
+
+{ "email": "asistente@syssalud.com", "password": "Syssalud2026!" }
+
+### Crear profesional (usa el token del login de arriba)
+POST http://localhost:4000/api/profesionales
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+{ "usuarioId": "f9c415da-7dc7-4bcb-b115-eb66cf23c3cd", "especialidad": "Dermatología", "matricula": "MP12345" }
+
+### Agregar horario
+POST http://localhost:4000/api/profesionales/61b34e58-eb07-4ce4-a977-7318b4634f88/horarios
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+{ "diaSemana": 1, "horaInicio": "09:00", "horaFin": "13:00" }
+
+### Ver profesional con sus horarios
+GET http://localhost:4000/api/profesionales/61b34e58-eb07-4ce4-a977-7318b4634f88
+
+
+### Crear profesional (usa el token del login de arriba)
+POST http://localhost:4000/api/profesionales
+Content-Type: application/json
+
+{ "usuarioId": "f9c415da-7dc7-4bcb-b115-eb66cf23c3cd", "especialidad": "Dermatología", "matricula": "MP12345" }
