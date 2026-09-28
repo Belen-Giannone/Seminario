@@ -92,6 +92,6 @@ describe('HistoriaClinicaService', () => {
       observaciones: 'Control',
       antecedentes: '',
       tratamientos: '',
-    })).resolves.toMatchObject({ turnoId: null });
+    })).resolves.toMatchObject({ idTurno: null });
   });
 });

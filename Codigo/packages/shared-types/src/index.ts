@@ -6,3 +6,13 @@ export { EstadoPago } from './enums/estado-pago.enum';
 export { MetodoPago } from './enums/metodo-pago.enum';
 export type { UsuarioPerfil } from './dto/usuario.dto';
 export type { LoginRequest, RegisterPacienteRequest, AuthResponse } from './dto/auth.dto';
+export type {
+	BuscarHistoriaQuery,
+	CrearEntradaRequest,
+	EntradaClinica,
+	HistoriaClinica,
+	HistoriaClinicaInexistente,
+	PacienteResumen,
+	ProfesionalResumen,
+} from './dto/historia-clinica.dto';
+export { historiaClinicaFixture } from './dto/historia-clinica.dto';

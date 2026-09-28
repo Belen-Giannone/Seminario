@@ -30,17 +30,18 @@ export class HistoriaClinicaController {
 
   @Get()
   buscar(
+    @Req() request: AuthenticatedRequest,
     @Query('buscar') buscar?: string,
     @Query('dni') dni?: string,
     @Query('nombre') nombre?: string,
     @Query('apellido') apellido?: string,
   ) {
-    return this.historiaClinicaService.buscar({ buscar, dni, nombre, apellido });
+    return this.historiaClinicaService.buscar({ buscar, dni, nombre, apellido }, request.user!.sub);
   }
 
   @Get(':pacienteId')
-  obtener(@Param('pacienteId') pacienteId: string) {
-    return this.historiaClinicaService.obtener(pacienteId);
+  obtener(@Param('pacienteId') pacienteId: string, @Req() request: AuthenticatedRequest) {
+    return this.historiaClinicaService.obtener(pacienteId, request.user!.sub);
   }
 
   @Post(':pacienteId')

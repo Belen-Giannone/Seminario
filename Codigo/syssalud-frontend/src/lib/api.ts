@@ -1,43 +1,18 @@
 import type {
   AuthResponse,
+  BuscarHistoriaQuery,
+  CrearEntradaRequest,
+  EntradaClinica,
+  HistoriaClinica,
+  HistoriaClinicaInexistente,
   LoginRequest,
+  PacienteResumen,
   RegisterPacienteRequest,
   UsuarioPerfil,
 } from '@syssalud/shared-types';
+export type { EntradaClinica, HistoriaClinica, HistoriaClinicaInexistente, PacienteResumen } from '@syssalud/shared-types';
 
-export interface EntradaClinica {
-  id: string;
-  turnoId: string | null;
-  fecha: string;
-  observaciones: string;
-  antecedentes: string;
-  tratamientos: string;
-  fechaActualizacion: string;
-  profesionalId: string;
-}
-
-export interface HistoriaClinica {
-  idHistoria: string;
-  pacienteId: string;
-  nomAppPac: string | null;
-  telefono: string | null;
-  correo: string | null;
-  entradas: EntradaClinica[];
-}
-
-interface CrearEntradaRequest {
-  observaciones: string;
-  antecedentes: string;
-  tratamientos: string;
-  turnoId?: string;
-}
-
-export interface BuscarHistoriaQuery {
-  buscar?: string;
-  dni?: string;
-  nombre?: string;
-  apellido?: string;
-}
+type BuscarHistoriaRequest = BuscarHistoriaQuery & { buscar?: string };
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
@@ -94,15 +69,15 @@ export const api = {
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
 
   historiaClinica: {
-    buscar: (query: BuscarHistoriaQuery, token: string) => {
+    buscar: (query: BuscarHistoriaRequest, token: string) => {
       const params = new URLSearchParams();
       Object.entries(query).forEach(([key, value]) => {
         if (value?.trim()) params.set(key, value.trim());
       });
-      return request<HistoriaClinica>(`/historia-clinica?${params}`, {}, token);
+      return request<HistoriaClinica | HistoriaClinicaInexistente | PacienteResumen[]>(`/historia-clinica?${params}`, {}, token);
     },
     obtener: (pacienteId: string, token: string) =>
-      request<HistoriaClinica>(`/historia-clinica/${encodeURIComponent(pacienteId)}`, {}, token),
+      request<HistoriaClinica | HistoriaClinicaInexistente>(`/historia-clinica/${encodeURIComponent(pacienteId)}`, {}, token),
     inicializar: (pacienteId: string, token: string) =>
       request<HistoriaClinica>(`/historia-clinica/${encodeURIComponent(pacienteId)}`, { method: 'POST' }, token),
     agregarEntrada: (pacienteId: string, data: CrearEntradaRequest, token: string) =>

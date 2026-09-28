@@ -4,7 +4,11 @@ import { Rol } from '@syssalud/shared-types';
 import { Brand } from '../components/Brand';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { useAuth } from '../lib/auth-context';
-import { ApiError, api, type HistoriaClinica } from '../lib/api';
+import { ApiError, api, type HistoriaClinica, type HistoriaClinicaInexistente, type PacienteResumen } from '../lib/api';
+
+function esHistoriaInexistente(resultado: HistoriaClinica | HistoriaClinicaInexistente): resultado is HistoriaClinicaInexistente {
+  return 'existe' in resultado;
+}
 
 export function HistoriaClinicaPage() {
   const { usuario, token, logout } = useAuth();
@@ -12,6 +16,7 @@ export function HistoriaClinicaPage() {
   const [tipoBusqueda, setTipoBusqueda] = useState<'dni' | 'nombre' | 'buscar'>('dni');
   const [apellido, setApellido] = useState('');
   const [historia, setHistoria] = useState<HistoriaClinica | null>(null);
+  const [coincidencias, setCoincidencias] = useState<PacienteResumen[]>([]);
   const [form, setForm] = useState({ observaciones: '', antecedentes: '', tratamientos: '', turnoId: '' });
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
@@ -41,7 +46,15 @@ export function HistoriaClinicaPage() {
         token,
       );
       if (Array.isArray(resultado)) {
+        setCoincidencias(resultado);
         setError('Se encontraron varios pacientes. Elegí uno para continuar.');
+        return;
+      }
+      setCoincidencias([]);
+      if (esHistoriaInexistente(resultado)) {
+        setHistoria(null);
+        setCriterio(resultado.pacienteId);
+        setMensaje('El paciente seleccionado no cuenta con una historia clínica previa, ¿desea inicializarla?');
         return;
       }
       setHistoria(resultado);
@@ -56,11 +69,28 @@ export function HistoriaClinicaPage() {
     });
   };
 
+  const seleccionarPaciente = (paciente: PacienteResumen) => {
+    setCriterio(paciente.id);
+    setCoincidencias([]);
+    setError('');
+    void ejecutar(async () => {
+      const resultado = await api.historiaClinica.obtener(paciente.id, token);
+      if (esHistoriaInexistente(resultado)) {
+        setMensaje('El paciente seleccionado no cuenta con una historia clínica previa, ¿desea inicializarla?');
+        setHistoria(null);
+        return;
+      }
+      setHistoria(resultado);
+    });
+  };
+
   const agregarEntrada = (event: FormEvent) => {
     event.preventDefault();
     void ejecutar(async () => {
       await api.historiaClinica.agregarEntrada(criterio, { ...form, turnoId: form.turnoId || undefined }, token);
-      setHistoria(await api.historiaClinica.obtener(criterio, token));
+      const actualizada = await api.historiaClinica.obtener(criterio, token);
+      if (esHistoriaInexistente(actualizada)) return;
+      setHistoria(actualizada);
       setForm({ observaciones: '', antecedentes: '', tratamientos: '', turnoId: '' });
       setMensaje('Historia clínica actualizada correctamente.');
     });
@@ -87,6 +117,7 @@ export function HistoriaClinicaPage() {
         </form>
         {error && <p className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
         {mensaje && <p className="mt-4 rounded-md bg-teal-50 p-3 text-sm text-teal-800 dark:bg-teal-950/30 dark:text-teal-300">{mensaje}</p>}
+        {coincidencias.length > 0 && <section className="mt-4 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><h2 className="font-medium dark:text-slate-50">Seleccioná un paciente</h2><div className="mt-3 space-y-2">{coincidencias.map((paciente) => <button key={paciente.id} type="button" onClick={() => seleccionarPaciente(paciente)} className="block w-full rounded-md border border-slate-200 px-3 py-2 text-left text-sm hover:border-teal-500 dark:border-slate-700 dark:text-slate-300">{paciente.nombreCompleto || [paciente.nombre, paciente.apellido].filter(Boolean).join(' ') || paciente.id} {paciente.dni ? `· DNI ${paciente.dni}` : ''}</button>)}</div></section>}
         {historia && <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <section className="rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"><h2 className="text-xl font-semibold dark:text-slate-50">{historia.nomAppPac || historia.pacienteId}</h2><p className="mt-1 text-sm text-slate-500">{historia.entradas.length} entradas</p><div className="mt-6 space-y-4">{historia.entradas.map((entrada) => <article key={entrada.id} className="border-l-2 border-teal-500 pl-4"><p className="font-mono text-xs text-teal-700 dark:text-teal-300">{entrada.fecha}</p><p className="mt-1 text-sm dark:text-slate-300">{entrada.observaciones || 'Sin observaciones.'}</p><p className="text-sm text-slate-500">{entrada.tratamientos || 'Sin tratamientos.'}</p></article>)}</div></section>
           <form onSubmit={agregarEntrada} className="rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"><h2 className="text-lg font-semibold dark:text-slate-50">Nueva entrada</h2>{(['observaciones', 'antecedentes', 'tratamientos', 'turnoId'] as const).map((campo) => <label key={campo} className="mt-4 block text-sm dark:text-slate-300">{campo}<textarea value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} rows={campo === 'turnoId' ? 1 : 3} className="mt-1 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700" /></label>)}<button type="submit" className="mt-5 w-full rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white">Registrar información</button></form>
