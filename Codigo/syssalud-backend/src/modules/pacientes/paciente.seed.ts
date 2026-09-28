@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
-import { Paciente, EstadoPaciente, AltaPor } from './entities/paciente.entity';
+import { EstadoPaciente, AltaPor } from '@syssalud/shared-types';
+import { Paciente } from './entities/paciente.entity';
 
 export async function seedPacienteSeed(dataSource: DataSource): Promise<void> {
   const pacienteRepo = dataSource.getRepository(Paciente);
@@ -25,7 +26,7 @@ export async function seedPacienteSeed(dataSource: DataSource): Promise<void> {
       nombre: 'Paciente',
       apellido: 'Prueba',
       estado: EstadoPaciente.ACTIVO, // Asegurate que coincida con tu enum
-      altaPor: AltaPor.AUTOREGISTRO, // Asegurate que coincida con tu enum
+      altaPor: AltaPor.AUTORREGISTRO, // Asegurate que coincida con tu enum
       numeroPaciente: nuevoNumero,
     });
 

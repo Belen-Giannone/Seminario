@@ -13,7 +13,7 @@ export class Paciente {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Index()
+  @Index({ unique: true })
   @Column({ type: 'uuid', nullable: true })
   usuarioId: string | null;
 
@@ -30,7 +30,7 @@ export class Paciente {
   @Column({ type: 'enum', enum: AltaPor })
   altaPor: AltaPor;
 
-  @Index()
+  @Index({ unique: true })
   @Column({ type: 'varchar', length: 8 })
   dni: string;
 

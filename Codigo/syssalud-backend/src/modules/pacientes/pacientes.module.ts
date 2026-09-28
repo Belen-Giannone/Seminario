@@ -6,9 +6,10 @@ import { PacientesController } from './pacientes.controller';
 import { PacientesService } from './pacientes.service';
 import { AuthClient } from './clients/auth.client';
 import { NotificacionesClient } from './clients/notificaciones.client';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Paciente]), HttpModule],
+  imports: [TypeOrmModule.forFeature([Paciente]), HttpModule, AuthModule],
   controllers: [PacientesController],
   providers: [PacientesService, AuthClient, NotificacionesClient],
   exports: [],
