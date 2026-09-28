@@ -36,7 +36,7 @@ export interface AltaPerfilPacienteRequest extends CrearPacienteRequest {
   usuarioId: string;
 }
 
-export type ActualizarPacienteRequest = Partial
+export type ActualizarPacienteRequest = Partial<
   Pick<Paciente, 'telefono' | 'email' | 'domicilio' | 'estado'>
 >;
 

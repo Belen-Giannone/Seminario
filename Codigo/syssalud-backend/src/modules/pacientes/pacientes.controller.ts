@@ -40,6 +40,7 @@ export class PacientesController {
   }
 
   /** PAC-013 — costura inversa desde Auth */
+  @UseGuards(JwtAuthGuard)
   @Post('perfil')
   registrarPerfil(@Body() dto: AltaPerfilPacienteDto) {
     return this.pacientesService.registrarDesdeAutorregistro(dto);
