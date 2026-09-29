@@ -6,3 +6,17 @@ export { EstadoPago } from './enums/estado-pago.enum';
 export { MetodoPago } from './enums/metodo-pago.enum';
 export type { UsuarioPerfil } from './dto/usuario.dto';
 export type { LoginRequest, RegisterPacienteRequest, AuthResponse } from './dto/auth.dto';
+
+export {
+  Servicio,
+  ServicioResumen,
+  CrearServicioRequest,
+  ActualizarServicioRequest,
+  ProfesionalResumen,
+} from './dto/servicio.dto';
+
+export {
+  profesionalResumenFixture,
+} from './dto/profesionales-contract.dto';
+
+export const AGENDA_BLOQUE_MINUTOS = 15; // SER-026: constante compartida
