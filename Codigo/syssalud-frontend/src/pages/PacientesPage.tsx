@@ -83,11 +83,7 @@ export function PacientesPage() {
           <tbody>
             {/* Aquí mapearás los pacientes */}
             <tr>
-              <td
-                className="p-3"
-                colSpan={5}
-                className="text-center text-gray-500 p-4"
-              >
+              <td colSpan={5} className="p-4 text-center text-gray-500">
                 No hay pacientes cargados o conectando con la API...
               </td>
             </tr>
