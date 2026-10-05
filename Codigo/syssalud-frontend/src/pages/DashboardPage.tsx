@@ -16,14 +16,16 @@ interface ModuloCard {
   descripcion: string;
   cuu: string;
   roles: Rol[];
+  /** Ruta del módulo; sin ruta la tarjeta se muestra como "Próximamente". */
+  ruta?: string;
 }
 
 const MODULOS: ModuloCard[] = [
   { nombre: 'Turnos', descripcion: 'Solicitar, cancelar y reprogramar turnos.', cuu: 'CUU02–04', roles: [Rol.PACIENTE, Rol.ASISTENTE] },
   { nombre: 'Agenda', descripcion: 'Consultar la agenda de turnos asignados.', cuu: 'CUU05', roles: [Rol.PROFESIONAL, Rol.ASISTENTE] },
   { nombre: 'Pagos', descripcion: 'Comprobantes y estado de pago de tus turnos.', cuu: 'CUU06', roles: [Rol.PACIENTE, Rol.ASISTENTE] },
-  { nombre: 'Pacientes', descripcion: 'Registrar y buscar pacientes del centro.', cuu: 'CUU01', roles: [Rol.ASISTENTE] },
-  { nombre: 'Historia clínica', descripcion: 'Consultas, observaciones y antecedentes.', cuu: 'CUU09', roles: [Rol.PROFESIONAL] },
+  { nombre: 'Pacientes', descripcion: 'Registrar y buscar pacientes del centro.', cuu: 'CUU01', roles: [Rol.ASISTENTE], ruta: '/pacientes' },
+  { nombre: 'Historia clínica', descripcion: 'Consultas, observaciones y antecedentes.', cuu: 'CUU09', roles: [Rol.PROFESIONAL], ruta: '/historia-clinica' },
   { nombre: 'Servicios', descripcion: 'Catálogo de servicios del centro.', cuu: 'CUU10', roles: [Rol.ASISTENTE] },
   { nombre: 'Profesionales', descripcion: 'Alta y horarios de atención.', cuu: '—', roles: [Rol.ASISTENTE] },
   { nombre: 'Métricas del negocio', descripcion: 'Ingresos, ocupación y desempeño del centro.', cuu: 'CUU07', roles: [Rol.DUENO] },
@@ -85,8 +87,8 @@ export function DashboardPage() {
                 <div>
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium text-slate-900 dark:text-slate-50">{modulo.nombre}</h3>
-                    {modulo.nombre === 'Historia clínica' && usuario.rol === Rol.PROFESIONAL ? (
-                      <Link to="/historia-clinica" className="rounded-full bg-teal-50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-teal-700 dark:bg-teal-500/10 dark:text-teal-300">Abrir</Link>
+                    {modulo.ruta ? (
+                      <Link to={modulo.ruta} className="rounded-full bg-teal-50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-teal-700 dark:bg-teal-500/10 dark:text-teal-300">Abrir</Link>
                     ) : (
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                         Próximamente
