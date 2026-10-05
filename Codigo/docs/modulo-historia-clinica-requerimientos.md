@@ -2,7 +2,7 @@
 
 **Caso de uso cubierto:** CUU09 — Gestionar historia clínica.
 **Pareja responsable:** Pareja A (Pacientes & Historia Clínica).
-**Estado actual:** esqueleto (`historia-clinica.module.ts`, `historia-clinica.controller.ts` con `GET /historia-clinica` de ping, `historia-clinica.service.ts` con `estado()`). Sin entidad, DTOs, persistencia, RBAC ni frontend.
+**Estado actual:** implementado — entidades `HistoriaClinica`/`EntradaClinica` (append-only), endpoints `GET /api/historia-clinica/_estado`, `GET /api/historia-clinica?dni=|nombre=&apellido=`, `GET|POST /api/historia-clinica/:pacienteId`, `POST /api/historia-clinica/:pacienteId/entradas`, costuras `PacientesClient`/`TurnosClient` (reenvían el JWT del profesional) con modo `lenient|strict`, RBAC exclusivo `PROFESIONAL`, log de auditoría de lecturas, tests HCL-029/030/031 y e2e HCL-032; frontend `HistoriaClinicaPage.tsx` + `api.historiaClinica.*`. Pendiente: HCL-027 (seed, opcional), `autor` best-effort (requiere Profesionales) y el endpoint `GET /api/turnos?estado=ASISTIDO` del lado de Turnos (hoy `EstadoTurno` no tiene `ASISTIDO`).
 **Referencia de arquitectura:** `docs/_comun-arquitectura.md`.
 
 ## Contexto de negocio

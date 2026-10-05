@@ -2,17 +2,14 @@ import type {
   AuthResponse,
   BuscarHistoriaQuery,
   CrearEntradaRequest,
-  EntradaClinica,
+  EntradaCreadaResponse,
   HistoriaClinica,
   HistoriaClinicaInexistente,
   LoginRequest,
-  PacienteResumen,
   RegisterPacienteRequest,
+  ResultadoBusquedaHistoria,
   UsuarioPerfil,
 } from '@syssalud/shared-types';
-export type { EntradaClinica, HistoriaClinica, HistoriaClinicaInexistente, PacienteResumen } from '@syssalud/shared-types';
-
-type BuscarHistoriaRequest = BuscarHistoriaQuery & { buscar?: string };
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
@@ -69,19 +66,27 @@ export const api = {
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
 
   historiaClinica: {
-    buscar: (query: BuscarHistoriaRequest, token: string) => {
+    buscar: (query: BuscarHistoriaQuery, token: string) => {
       const params = new URLSearchParams();
       Object.entries(query).forEach(([key, value]) => {
         if (value?.trim()) params.set(key, value.trim());
       });
-      return request<HistoriaClinica | HistoriaClinicaInexistente | PacienteResumen[]>(`/historia-clinica?${params}`, {}, token);
+      return request<ResultadoBusquedaHistoria>(`/historia-clinica?${params}`, {}, token);
     },
     obtener: (pacienteId: string, token: string) =>
-      request<HistoriaClinica | HistoriaClinicaInexistente>(`/historia-clinica/${encodeURIComponent(pacienteId)}`, {}, token),
+      request<HistoriaClinica | HistoriaClinicaInexistente>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}`,
+        {},
+        token,
+      ),
     inicializar: (pacienteId: string, token: string) =>
-      request<HistoriaClinica>(`/historia-clinica/${encodeURIComponent(pacienteId)}`, { method: 'POST' }, token),
+      request<HistoriaClinica>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}`,
+        { method: 'POST' },
+        token,
+      ),
     agregarEntrada: (pacienteId: string, data: CrearEntradaRequest, token: string) =>
-      request<{ mensaje: string; entrada: EntradaClinica }>(
+      request<EntradaCreadaResponse>(
         `/historia-clinica/${encodeURIComponent(pacienteId)}/entradas`,
         { method: 'POST', body: JSON.stringify(data) },
         token,

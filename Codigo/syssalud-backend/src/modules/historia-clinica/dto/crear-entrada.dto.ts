@@ -1,6 +1,8 @@
+import type { CrearEntradaRequest } from '@syssalud/shared-types';
 import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
-export class CrearEntradaDto {
+/** HCL-015 / HCL-023: al menos un campo no vacío (lo valida el service). */
+export class CrearEntradaDto implements CrearEntradaRequest {
   @IsString()
   @MaxLength(5000)
   observaciones: string;

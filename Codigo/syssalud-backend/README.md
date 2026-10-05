@@ -25,6 +25,20 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Módulo Historia Clínica (`/api/historia-clinica`)
+
+CUU09 — Gestionar historia clínica. **Acceso exclusivo del rol `PROFESIONAL`** (RN10); la HC es propiedad del paciente y hay una sola por paciente (RN02). El módulo no tiene consumidores REST por diseño: ningún otro módulo lee la HC.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/_estado` | Readiness de las costuras Pacientes/Turnos y modo de validación (sin datos clínicos) |
+| GET | `/?dni=` o `/?nombre=&apellido=` | Busca el paciente y devuelve su HC, `{ existe:false }` o la lista para desambiguar |
+| GET | `/:pacienteId` | HC completa del paciente |
+| POST | `/:pacienteId` | Inicializa la HC en blanco (idempotente) |
+| POST | `/:pacienteId/entradas` | Agrega una entrada (append-only) |
+
+Variables de entorno: `PACIENTES_API_URL`, `TURNOS_API_URL`, `HISTORIA_VALIDAR_TURNOS` (`lenient` por defecto | `strict`). Ver `docs/modulo-historia-clinica-requerimientos.md`.
+
 ## Project setup
 
 ```bash

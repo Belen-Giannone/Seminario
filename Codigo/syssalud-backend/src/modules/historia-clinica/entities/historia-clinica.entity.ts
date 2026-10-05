@@ -15,7 +15,7 @@ export class HistoriaClinica {
   id: string;
 
   @Index({ unique: true })
-  @Column()
+  @Column({ type: 'uuid' })
   pacienteId: string;
 
   @CreateDateColumn()

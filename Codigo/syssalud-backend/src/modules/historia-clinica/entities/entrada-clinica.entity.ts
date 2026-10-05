@@ -15,7 +15,7 @@ export class EntradaClinica {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'uuid' })
   historiaId: string;
 
   @ManyToOne(() => HistoriaClinica, (historia) => historia.entradas, {
@@ -24,10 +24,10 @@ export class EntradaClinica {
   @JoinColumn({ name: 'historiaId' })
   historia: HistoriaClinica;
 
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   turnoId: string | null;
 
-  @Column()
+  @Column({ type: 'uuid' })
   profesionalId: string;
 
   @Column({ type: 'date' })

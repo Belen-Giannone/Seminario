@@ -4,15 +4,29 @@ export { Rol } from './enums/rol.enum';
 export { EstadoTurno } from './enums/estado-turno.enum';
 export { EstadoPago } from './enums/estado-pago.enum';
 export { MetodoPago } from './enums/metodo-pago.enum';
+export { EstadoPaciente, AltaPor } from './enums/paciente.enum';
 export type { UsuarioPerfil } from './dto/usuario.dto';
-export type { LoginRequest, RegisterPacienteRequest, AuthResponse } from './dto/auth.dto';
 export type {
-	BuscarHistoriaQuery,
-	CrearEntradaRequest,
-	EntradaClinica,
-	HistoriaClinica,
-	HistoriaClinicaInexistente,
-	PacienteResumen,
-	ProfesionalResumen,
+  LoginRequest,
+  RegisterPacienteRequest,
+  AuthResponse,
+} from './dto/auth.dto';
+export type {
+  Paciente,
+  PacienteResumen,
+  CrearPacienteRequest,
+  AltaPerfilPacienteRequest,
+  ActualizarPacienteRequest,
+} from './dto/paciente.dto';
+export { pacienteResumenFixture } from './dto/paciente.dto';
+export type {
+  BuscarHistoriaQuery,
+  CrearEntradaRequest,
+  EntradaClinica,
+  EntradaCreadaResponse,
+  HistoriaClinica,
+  HistoriaClinicaInexistente,
+  ProfesionalResumen,
+  ResultadoBusquedaHistoria,
 } from './dto/historia-clinica.dto';
 export { historiaClinicaFixture } from './dto/historia-clinica.dto';

@@ -1,10 +1,4 @@
-export interface PacienteResumen {
-  id: string;
-  nombre?: string;
-  apellido?: string;
-  nombreCompleto?: string;
-  dni?: string | null;
-}
+import type { PacienteResumen } from './paciente.dto';
 
 export interface ProfesionalResumen {
   id: string;
@@ -14,7 +8,7 @@ export interface ProfesionalResumen {
 
 export interface EntradaClinica {
   id: string;
-  idTurno: string | null; // Unificado idTurno
+  idTurno: string | null;
   fecha: string;
   observaciones: string;
   antecedentes: string;
@@ -44,17 +38,30 @@ export interface CrearEntradaRequest {
   turnoId?: string;
 }
 
+/** `criterio_busqueda = [dni_pac | (nom_pac + ape_pac)]` (CUU09 paso 1). */
 export interface BuscarHistoriaQuery {
   dni?: string;
   nombre?: string;
   apellido?: string;
 }
 
+/**
+ * Respuesta de `GET /api/historia-clinica`: la HC del único paciente encontrado,
+ * la marca de "sin HC previa" (alt 2.a) o la lista para desambiguar.
+ */
+export type ResultadoBusquedaHistoria =
+  HistoriaClinica | HistoriaClinicaInexistente | PacienteResumen[];
+
+export interface EntradaCreadaResponse {
+  mensaje: string;
+  entrada: EntradaClinica;
+}
+
 export const historiaClinicaFixture: HistoriaClinica = {
-  idHistoria: 'historia-demo',
-  pacienteId: 'paciente-demo',
-  nomAppPac: 'Dolores Campos',
+  idHistoria: '22222222-2222-2222-2222-222222222222',
+  pacienteId: '11111111-1111-1111-1111-111111111111',
+  nomAppPac: 'Juana Pérez',
   telefono: '3411234567',
-  correo: 'dolores@syssalud.com',
+  correo: 'juana@syssalud.com',
   entradas: [],
 };
