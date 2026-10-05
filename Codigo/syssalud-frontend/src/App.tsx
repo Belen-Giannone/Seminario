@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { ProfesionalesPage } from './pages/Profesionalespage';
 
 export function App() {
   return (
@@ -25,6 +26,14 @@ export function App() {
               }
             />
             <Route path="*" element={<NotFoundPage />} />
+            <Route
+              path="/profesionales"
+              element={
+                <ProtectedRoute>
+                  <ProfesionalesPage />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

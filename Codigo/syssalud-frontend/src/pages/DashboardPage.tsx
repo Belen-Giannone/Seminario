@@ -2,6 +2,7 @@ import { Rol } from '@syssalud/shared-types';
 import { Brand } from '../components/Brand';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { useAuth } from '../lib/auth-context';
+import { Link } from 'react-router-dom';
 
 const ETIQUETA_ROL: Record<Rol, string> = {
   [Rol.PACIENTE]: 'Paciente',
@@ -76,23 +77,36 @@ export function DashboardPage() {
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {modulosVisibles.map((modulo) => (
-              <div
-                key={modulo.nombre}
-                className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-5 opacity-80 transition-theme dark:border-slate-800 dark:bg-slate-900"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-slate-900 dark:text-slate-50">{modulo.nombre}</h3>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                      Próximamente
-                    </span>
+            {modulosVisibles.map((modulo) => {
+              const contenido = (
+                <>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-slate-900 dark:text-slate-50">{modulo.nombre}</h3>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        {modulo.nombre === 'Profesionales' ? 'Disponible' : 'Próximamente'}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{modulo.descripcion}</p>
                   </div>
-                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{modulo.descripcion}</p>
+                  <p className="mt-4 font-mono text-xs text-slate-400 dark:text-slate-600">{modulo.cuu}</p>
+                </>
+              );
+
+              const clases =
+                'flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-5 transition-theme dark:border-slate-800 dark:bg-slate-900' +
+                (modulo.nombre === 'Profesionales' ? ' hover:border-teal-400 dark:hover:border-teal-600' : ' opacity-80');
+
+              return modulo.nombre === 'Profesionales' ? (
+                <Link key={modulo.nombre} to="/profesionales" className={clases}>
+                  {contenido}
+                </Link>
+              ) : (
+                <div key={modulo.nombre} className={clases}>
+                  {contenido}
                 </div>
-                <p className="mt-4 font-mono text-xs text-slate-400 dark:text-slate-600">{modulo.cuu}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </main>

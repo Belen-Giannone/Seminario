@@ -2,7 +2,11 @@ import type {
   AuthResponse,
   LoginRequest,
   RegisterPacienteRequest,
-  UsuarioPerfil,
+  UsuarioPerfil, 
+  Profesional,
+  CrearProfesionalRequest,
+  CrearHorarioRequest,
+  HorarioAtencion,
 } from '@syssalud/shared-types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
@@ -58,6 +62,21 @@ export const api = {
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
+  listarProfesionales: (token: string) =>
+    request<Profesional[]>('/profesionales', { method: 'GET' }, token),
+
+  obtenerProfesional: (id: string, token: string) =>
+    request<Profesional>(`/profesionales/${id}`, { method: 'GET' }, token),
+
+  crearProfesional: (data: CrearProfesionalRequest, token: string) =>
+    request<Profesional>('/profesionales', { method: 'POST', body: JSON.stringify(data) }, token),
+
+  agregarHorarioProfesional: (profesionalId: string, data: CrearHorarioRequest, token: string) =>
+    request<HorarioAtencion>(
+      `/profesionales/${profesionalId}/horarios`,
+      { method: 'POST', body: JSON.stringify(data) },
+      token,
+    ),
 };
 
 export { ApiError };

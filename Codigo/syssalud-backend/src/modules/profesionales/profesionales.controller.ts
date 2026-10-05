@@ -12,8 +12,8 @@ export class ProfesionalesController {
   constructor(private readonly profesionalesService: ProfesionalesService) {}
 
   @Get()
-  estado() {
-    return this.profesionalesService.estado();
+  listar() {
+    return this.profesionalesService.listar();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

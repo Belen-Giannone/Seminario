@@ -7,3 +7,4 @@ export { MetodoPago } from './enums/metodo-pago.enum';
 export { DiaSemana } from './enums/dia-semana.enum';
 export type { UsuarioPerfil } from './dto/usuario.dto';
 export type { LoginRequest, RegisterPacienteRequest, AuthResponse } from './dto/auth.dto';
+export type { Profesional, CrearProfesionalRequest, CrearHorarioRequest, HorarioAtencion } from './dto/profesional.dto';
