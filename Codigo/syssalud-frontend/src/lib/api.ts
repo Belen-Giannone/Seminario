@@ -2,10 +2,13 @@ import type {
   AuthResponse,
   BuscarHistoriaQuery,
   CrearEntradaRequest,
+  CrearPacienteRequest,
   EntradaCreadaResponse,
   HistoriaClinica,
   HistoriaClinicaInexistente,
   LoginRequest,
+  Paciente,
+  PacienteResumen,
   RegisterPacienteRequest,
   ResultadoBusquedaHistoria,
   UsuarioPerfil,
@@ -64,6 +67,18 @@ export const api = {
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
+
+  pacientes: {
+    buscar: (buscar: string, token: string) => {
+      const params = new URLSearchParams();
+      if (buscar.trim()) params.set('buscar', buscar.trim());
+      return request<PacienteResumen[]>(`/pacientes?${params}`, {}, token);
+    },
+    obtener: (id: string, token: string) =>
+      request<Paciente>(`/pacientes/${encodeURIComponent(id)}`, {}, token),
+    registrar: (data: CrearPacienteRequest, token: string) =>
+      request<Paciente>('/pacientes', { method: 'POST', body: JSON.stringify(data) }, token),
+  },
 
   historiaClinica: {
     buscar: (query: BuscarHistoriaQuery, token: string) => {
