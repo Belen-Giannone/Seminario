@@ -227,7 +227,6 @@ export class PacientesService {
       );
     }
   }
-
   private async crearRegistro(datos: {
     usuarioId: string | null;
     estado: EstadoPaciente;
@@ -237,16 +236,16 @@ export class PacientesService {
     apellido: string;
   }): Promise<Paciente> {
     return this.dataSource.transaction(async (manager) => {
+      await manager.query('LOCK TABLE pacientes IN EXCLUSIVE MODE');
       const repo = manager.getRepository(Paciente);
       const { max } = await repo
         .createQueryBuilder('p')
         .select('MAX(p.numeroPaciente)', 'max')
-        .setLock('pessimistic_write')
         .getRawOne<{ max: number | null }>();
 
       const paciente = repo.create({
         ...datos,
-        numeroPaciente: (max ?? 0) + 1,
+        numeroPaciente: Number(max ?? 0) + 1,
       });
       return repo.save(paciente);
     });

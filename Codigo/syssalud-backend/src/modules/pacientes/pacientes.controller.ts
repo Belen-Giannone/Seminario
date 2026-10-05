@@ -40,9 +40,18 @@ export class PacientesController {
   }
 
   /** PAC-013 — costura inversa desde Auth */
+  @UseGuards(JwtAuthGuard)
   @Post('perfil')
-  registrarPerfil(@Body() dto: AltaPerfilPacienteDto) {
-    return this.pacientesService.registrarDesdeAutorregistro(dto);
+  registrarPerfil(
+    @Body() dto: AltaPerfilPacienteDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    // El usuarioId nunca se toma del body: si no coincide con el del token,
+    // cualquier usuario autenticado podría crear/leer el perfil de otra persona.
+    return this.pacientesService.registrarDesdeAutorregistro({
+      ...dto,
+      usuarioId: req.user!.sub,
+    });
   }
 
   /** PAC-014 — buscador */

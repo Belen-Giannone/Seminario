@@ -7,6 +7,7 @@ import { HistoriaClinicaPage } from './pages/HistoriaClinicaPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { PacientesPage } from './pages/PacientesPage';
 
 export function App() {
   return (
@@ -30,6 +31,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <HistoriaClinicaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pacientes"
+              element={
+                <ProtectedRoute>
+                  <PacientesPage />
                 </ProtectedRoute>
               }
             />
