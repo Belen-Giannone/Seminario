@@ -2,7 +2,7 @@
 
 **Caso de uso cubierto:** CUU10 — Mantener catálogo de servicios
 **Pareja responsable:** Pareja B (Servicios & Profesionales)
-**Estado actual:** esqueleto (`servicios.module.ts`, `servicios.controller.ts` con un único `GET /servicios` de ping, `servicios.service.ts` con `estado()` que devuelve `{ estado: 'pendiente' }`). No hay entidad, DTOs, persistencia, RBAC ni frontend.
+**Estado actual:** implementado — entidades `Servicio` + `ServicioProfesional` (baja lógica), CRUD `/api/servicios` con RBAC (escritura ASISTENTE), costura `ProfesionalesClient` con modo `lenient|strict` (`SERVICIOS_VALIDAR_PROFESIONALES`), unicidad de nombre sin distinguir mayúsculas, duración múltiplo de `BLOQUE_AGENDA_MIN`; tests SER-039/040/041; frontend `ServiciosPage` (catálogo, baja/reactivación), `ServicioFormPage` (alta/edición) y selector de servicio → profesional → horario en Solicitar turno (SER-035); servicios demo en `npm run seed:demo` (SER-037). Pendiente: SER-019 rechazar la baja con turnos futuros (requiere costura a Turnos) y SER-042 e2e con base real.
 
 ## Estrategia de desarrollo (decisión de arquitectura)
 

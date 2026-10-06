@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Alert } from '../components/Alert';
 import { Brand } from '../components/Brand';
+import { Button } from '../components/Button';
 import { FormField } from '../components/FormField';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ApiError } from '../lib/api';
@@ -99,22 +101,11 @@ export function LoginPage() {
                 required
               />
 
-              {error && (
-                <p
-                  role="alert"
-                  className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
-                >
-                  {error}
-                </p>
-              )}
+              {error && <Alert tono="error">{error}</Alert>}
 
-              <button
-                type="submit"
-                disabled={enviando}
-                className="mt-2 inline-flex items-center justify-center rounded-md bg-teal-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-theme hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-teal-500 dark:hover:bg-teal-400 dark:focus-visible:ring-offset-slate-950"
-              >
+              <Button type="submit" disabled={enviando} className="mt-2">
                 {enviando ? 'Ingresando…' : 'Ingresar'}
-              </button>
+              </Button>
             </form>
 
             <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">

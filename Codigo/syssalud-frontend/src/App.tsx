@@ -2,12 +2,18 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './lib/auth-context';
 import { ThemeProvider } from './lib/theme-context';
+import { AgendaPage } from './pages/AgendaPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { HistoriaClinicaPage } from './pages/HistoriaClinicaPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { CatalogoServicios } from './pages/services/CatalogoServicios';
-import { ServicioForm } from './pages/services/ServicioForm';
+import { ServicioFormPage } from './pages/ServicioFormPage';
+import { ServiciosPage } from './pages/ServiciosPage';
+import { ProfesionalesPage } from './pages/ProfesionalesPage';
+import { PacientesPage } from './pages/PacientesPage';
+import { MisTurnosPage } from './pages/MisTurnosPage';
+import { SolicitarTurnoPage } from './pages/SolicitarTurnoPage';
 
 export function App() {
   return (
@@ -26,31 +32,79 @@ export function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/profesionales"
+              element={
+                <ProtectedRoute>
+                  <ProfesionalesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/historia-clinica"
+              element={
+                <ProtectedRoute>
+                  <HistoriaClinicaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pacientes"
+              element={
+                <ProtectedRoute>
+                  <PacientesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/turnos"
+              element={
+                <ProtectedRoute>
+                  <MisTurnosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/turnos/nuevo"
+              element={
+                <ProtectedRoute>
+                  <SolicitarTurnoPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agenda"
+              element={
+                <ProtectedRoute>
+                  <AgendaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/servicios"
+              element={
+                <ProtectedRoute>
+                  <ServiciosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/servicios/nuevo"
+              element={
+                <ProtectedRoute>
+                  <ServicioFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/servicios/:id/editar"
+              element={
+                <ProtectedRoute>
+                  <ServicioFormPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFoundPage />} />
-            <Route
-              path="/staff/servicios"
-              element={
-                <ProtectedRoute>
-                  <CatalogoServicios />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/staff/servicios/nuevo"
-              element={
-                <ProtectedRoute>
-                  <ServicioForm />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/staff/servicios/:id/editar"
-              element={
-                <ProtectedRoute>
-                  <ServicioForm />
-                </ProtectedRoute>
-              }
-            />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

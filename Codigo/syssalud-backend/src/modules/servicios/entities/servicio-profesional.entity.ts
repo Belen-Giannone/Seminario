@@ -1,20 +1,23 @@
-// syssalud-backend/src/modules/servicios/entities/servicio-profesional.entity.ts
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import { Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Servicio } from './servicio.entity';
 
 /**
- * Tabla intermedia para asociación muchos-a-muchos entre Servicio y Profesionales.
- * Los profesional_id son UUID opacos (sin FK física a otro módulo — SER-007).
+ * Asociación `1{id_prof}n` de un servicio (SER-007). `profesional_id` es un
+ * UUID opaco: sin FK a Profesionales; su existencia la valida la costura.
  */
 @Entity('servicio_profesionales')
 export class ServicioProfesional {
   @PrimaryColumn('uuid', { name: 'servicio_id' })
   servicioId: string;
 
+  /** Indexado para responder "servicios de un profesional" sin acoplar módulos. */
+  @Index()
   @PrimaryColumn('uuid', { name: 'profesional_id' })
   profesionalId: string;
 
-  @ManyToOne(() => Servicio)
+  @ManyToOne(() => Servicio, (servicio) => servicio.servicioProfesionales, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'servicio_id' })
   servicio: Servicio;
 }

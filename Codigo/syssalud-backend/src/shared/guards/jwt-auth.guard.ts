@@ -42,10 +42,12 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_SECRET || 'super_clave_secreta_syssalud_2026',
       });
       // Asignación tipada sin error de TypeScript
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       request.user = payload;
     } catch {
       throw new UnauthorizedException('Token inválido o expirado');

@@ -1,16 +1,38 @@
 import type {
-  AuthResponse,
-  LoginRequest,
-  RegisterPacienteRequest,
-  UsuarioPerfil,
-  Servicio,
-  ServicioResumen,
-  CrearServicioRequest,
+  ActualizarProfesionalRequest,
   ActualizarServicioRequest,
-  ProfesionalResumen
+  AgendaProfesional,
+  AuthResponse,
+  BuscarHistoriaQuery,
+  ConsultarAgendaQuery,
+  CrearEntradaRequest,
+  CrearPacienteRequest,
+  CrearProfesionalRequest,
+  CrearServicioRequest,
+  DefinirHorariosRequest,
+  DisponibilidadQuery,
+  EntradaCreadaResponse,
+  HistoriaClinica,
+  HistoriaClinicaInexistente,
+  HorarioAtencion,
+  LiquidacionPago,
+  LoginRequest,
+  Paciente,
+  PacienteResumen,
+  PagarTurnoRequest,
+  Profesional,
+  ProfesionalDelServicio,
+  ProfesionalResumen,
+  RegisterPacienteRequest,
+  ReprogramarTurnoRequest,
+  ResultadoBusquedaHistoria,
+  Servicio,
+  SlotDisponible,
+  SolicitarTurnoRequest,
+  Turno,
+  TurnoResumen,
+  UsuarioPerfil,
 } from '@syssalud/shared-types';
-
-const API_BASE = '/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
@@ -57,6 +79,12 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   return (await res.json()) as T;
 }
 
+/** Arma un querystring salteando claves vacías/indefinidas (p. ej. `periodo` opcional). */
+function aQueryString(params: Record<string, string | undefined>): string {
+  const entradas = Object.entries(params).filter(([, v]) => v !== undefined && v !== '');
+  return new URLSearchParams(entradas as [string, string][]).toString();
+}
+
 export const api = {
   login: (data: LoginRequest) =>
     request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
@@ -65,69 +93,154 @@ export const api = {
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
-};
 
-export const servicios = {
-  listar: async (token: string, soloActivos: boolean = true): Promise<ServicioResumen[]> => {
-    return request(`${API_BASE}/servicios?soloActivos=${soloActivos}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  profesionales: {
+    listar: (params: { ids?: string[]; activos?: boolean }, token: string) => {
+      const query = new URLSearchParams();
+      if (params.ids?.length) query.set('ids', params.ids.join(','));
+      if (params.activos !== undefined) query.set('activos', String(params.activos));
+      return request<ProfesionalResumen[]>(`/profesionales?${query}`, {}, token);
+    },
+    obtener: (id: string, token: string) =>
+      request<Profesional>(`/profesionales/${encodeURIComponent(id)}`, {}, token),
+    crear: (data: CrearProfesionalRequest, token: string) =>
+      request<{ profesional: Profesional; passwordInicial: string | null }>(
+        '/profesionales',
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+    actualizar: (id: string, data: ActualizarProfesionalRequest, token: string) =>
+      request<Profesional>(
+        `/profesionales/${encodeURIComponent(id)}`,
+        { method: 'PATCH', body: JSON.stringify(data) },
+        token,
+      ),
+    definirHorarios: (id: string, data: DefinirHorariosRequest, token: string) =>
+      request<HorarioAtencion[]>(
+        `/profesionales/${encodeURIComponent(id)}/horarios`,
+        { method: 'PUT', body: JSON.stringify(data) },
+        token,
+      ),
   },
 
-  obtener: async (token: string, id: string): Promise<Servicio> => {
-    return request(`${API_BASE}/servicios/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  pacientes: {
+    buscar: (buscar: string, token: string) => {
+      const params = new URLSearchParams();
+      if (buscar.trim()) params.set('buscar', buscar.trim());
+      return request<PacienteResumen[]>(`/pacientes?${params}`, {}, token);
+    },
+    obtener: (id: string, token: string) =>
+      request<Paciente>(`/pacientes/${encodeURIComponent(id)}`, {}, token),
+    registrar: (data: CrearPacienteRequest, token: string) =>
+      request<Paciente>('/pacientes', { method: 'POST', body: JSON.stringify(data) }, token),
   },
 
-  profesionales: async (token: string, id: string): Promise<ProfesionalResumen[]> => {
-    return request(`${API_BASE}/servicios/${id}/profesionales`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  historiaClinica: {
+    buscar: (query: BuscarHistoriaQuery, token: string) => {
+      const params = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value?.trim()) params.set(key, value.trim());
+      });
+      return request<ResultadoBusquedaHistoria>(`/historia-clinica?${params}`, {}, token);
+    },
+    obtener: (pacienteId: string, token: string) =>
+      request<HistoriaClinica | HistoriaClinicaInexistente>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}`,
+        {},
+        token,
+      ),
+    inicializar: (pacienteId: string, token: string) =>
+      request<HistoriaClinica>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}`,
+        { method: 'POST' },
+        token,
+      ),
+    agregarEntrada: (pacienteId: string, data: CrearEntradaRequest, token: string) =>
+      request<EntradaCreadaResponse>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}/entradas`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
   },
 
-  crear: async (token: string, data: CrearServicioRequest): Promise<Servicio> => {
-    return request(`${API_BASE}/servicios`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  turnos: {
+    solicitar: (data: SolicitarTurnoRequest, token: string) =>
+      request<{ turno: Turno; liquidacion: LiquidacionPago }>(
+        '/turnos',
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+    pagar: (id: string, data: PagarTurnoRequest, token: string) =>
+      request<Turno>(`/turnos/${encodeURIComponent(id)}/pago`, { method: 'POST', body: JSON.stringify(data) }, token),
+    listar: (
+      query: { pacienteId?: string; profesionalId?: string; estado?: string; desde?: string; hasta?: string },
+      token: string,
+    ) => {
+      const params = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value?.trim()) params.set(key, value.trim());
+      });
+      return request<TurnoResumen[]>(`/turnos?${params}`, {}, token);
+    },
+    obtener: (id: string, token: string) => request<Turno>(`/turnos/${encodeURIComponent(id)}`, {}, token),
+    misTurnos: (token: string) => request<TurnoResumen[]>('/turnos/mis-turnos', {}, token),
+    cancelar: (id: string, motivo: string | undefined, token: string) =>
+      request<Turno>(
+        `/turnos/${encodeURIComponent(id)}/cancelar`,
+        { method: 'POST', body: JSON.stringify(motivo ? { motivo } : {}) },
+        token,
+      ),
+    reprogramar: (id: string, data: ReprogramarTurnoRequest, token: string) =>
+      request<Turno>(
+        `/turnos/${encodeURIComponent(id)}/reprogramar`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+    marcarAsistencia: (id: string, token: string) =>
+      request<Turno>(`/turnos/${encodeURIComponent(id)}/asistencia`, { method: 'POST' }, token),
   },
 
-  actualizar: async (
-    token: string,
-    id: string,
-    data: ActualizarServicioRequest
-  ): Promise<Servicio> => {
-    return request(`${API_BASE}/servicios/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  /** Módulo Agenda — CUU05 (AGE-027). */
+  agenda: {
+    /** `GET /agenda/:profesionalId` (ASISTENTE cualquiera, PROFESIONAL sólo la propia). */
+    deProfesional: (profesionalId: string, query: Omit<ConsultarAgendaQuery, 'profesionalId'>, token: string) =>
+      request<AgendaProfesional>(
+        `/agenda/${profesionalId}?${aQueryString(query)}`,
+        { method: 'GET' },
+        token,
+      ),
+
+    /** `GET /agenda/mi-agenda` — atajo del profesional autenticado. */
+    miAgenda: (query: Omit<ConsultarAgendaQuery, 'profesionalId'>, token: string) =>
+      request<AgendaProfesional>(`/agenda/mi-agenda?${aQueryString(query)}`, { method: 'GET' }, token),
+
+    /** `GET /agenda/:profesionalId/disponibilidad` — slots libres para agendar un turno. */
+    disponibilidad: (profesionalId: string, query: Omit<DisponibilidadQuery, 'profesionalId'>, token: string) =>
+      request<SlotDisponible[]>(
+        `/agenda/${profesionalId}/disponibilidad?${aQueryString(query)}`,
+        { method: 'GET' },
+        token,
+      ),
   },
 
-  baja: async (token: string, id: string): Promise<void> => {
-    await request(`${API_BASE}/servicios/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  },
-
-  estado: async (): Promise<{
-    modulo: string;
-    dependencias: Record<string, 'ok' | 'no-disponible'>;
-    modoValidacion: string;
-  }> => {
-    return request(`${API_BASE}/servicios/_estado`);
-  },
-};
-
-// MÉTODOS DE PROFESIONALES (para selección)
-export const profesionales = {
-  listar: async (token: string): Promise<ProfesionalResumen[]> => {
-    return request(`${API_BASE}/profesionales`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  /** Módulo Servicios — CUU10 (SER-033). */
+  servicios: {
+    listar: (token: string, soloActivos = true) =>
+      request<Servicio[]>(`/servicios?soloActivos=${soloActivos}`, {}, token),
+    obtener: (id: string, token: string) =>
+      request<Servicio>(`/servicios/${encodeURIComponent(id)}`, {}, token),
+    profesionales: (id: string, token: string) =>
+      request<ProfesionalDelServicio[]>(`/servicios/${encodeURIComponent(id)}/profesionales`, {}, token),
+    crear: (data: CrearServicioRequest, token: string) =>
+      request<Servicio>('/servicios', { method: 'POST', body: JSON.stringify(data) }, token),
+    actualizar: (id: string, data: ActualizarServicioRequest, token: string) =>
+      request<Servicio>(
+        `/servicios/${encodeURIComponent(id)}`,
+        { method: 'PATCH', body: JSON.stringify(data) },
+        token,
+      ),
+    darDeBaja: (id: string, token: string) =>
+      request<void>(`/servicios/${encodeURIComponent(id)}`, { method: 'DELETE' }, token),
   },
 };
 
