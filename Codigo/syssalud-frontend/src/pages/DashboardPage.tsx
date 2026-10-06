@@ -14,7 +14,7 @@ interface ModuloCard {
 
 const MODULOS: ModuloCard[] = [
   { nombre: 'Turnos', descripcion: 'Solicitar, cancelar y reprogramar turnos.', cuu: 'CUU02–04', roles: [Rol.PACIENTE, Rol.ASISTENTE], ruta: '/turnos' },
-  { nombre: 'Agenda', descripcion: 'Consultar la agenda de turnos asignados.', cuu: 'CUU05', roles: [Rol.PROFESIONAL, Rol.ASISTENTE] },
+  { nombre: 'Agenda', descripcion: 'Consultar la agenda de turnos asignados.', cuu: 'CUU05', roles: [Rol.PROFESIONAL, Rol.ASISTENTE], ruta: '/agenda' },
   { nombre: 'Pagos', descripcion: 'Comprobantes y estado de pago de tus turnos.', cuu: 'CUU06', roles: [Rol.PACIENTE, Rol.ASISTENTE] },
   { nombre: 'Pacientes', descripcion: 'Registrar y buscar pacientes del centro.', cuu: 'CUU01', roles: [Rol.ASISTENTE], ruta: '/pacientes' },
   { nombre: 'Historia clínica', descripcion: 'Consultas, observaciones y antecedentes.', cuu: 'CUU09', roles: [Rol.PROFESIONAL], ruta: '/historia-clinica' },

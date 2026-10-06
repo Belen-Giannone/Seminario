@@ -1,11 +1,14 @@
 import type {
   ActualizarProfesionalRequest,
+  AgendaProfesional,
   AuthResponse,
   BuscarHistoriaQuery,
+  ConsultarAgendaQuery,
   CrearEntradaRequest,
   CrearPacienteRequest,
   CrearProfesionalRequest,
   DefinirHorariosRequest,
+  DisponibilidadQuery,
   EntradaCreadaResponse,
   HistoriaClinica,
   HistoriaClinicaInexistente,
@@ -20,6 +23,7 @@ import type {
   RegisterPacienteRequest,
   ReprogramarTurnoRequest,
   ResultadoBusquedaHistoria,
+  SlotDisponible,
   SolicitarTurnoRequest,
   Turno,
   TurnoResumen,
@@ -69,6 +73,12 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
+}
+
+/** Arma un querystring salteando claves vacías/indefinidas (p. ej. `periodo` opcional). */
+function aQueryString(params: Record<string, string | undefined>): string {
+  const entradas = Object.entries(params).filter(([, v]) => v !== undefined && v !== '');
+  return new URLSearchParams(entradas as [string, string][]).toString();
 }
 
 export const api = {
@@ -184,6 +194,29 @@ export const api = {
       ),
     marcarAsistencia: (id: string, token: string) =>
       request<Turno>(`/turnos/${encodeURIComponent(id)}/asistencia`, { method: 'POST' }, token),
+  },
+
+  /** Módulo Agenda — CUU05 (AGE-027). */
+  agenda: {
+    /** `GET /agenda/:profesionalId` (ASISTENTE cualquiera, PROFESIONAL sólo la propia). */
+    deProfesional: (profesionalId: string, query: Omit<ConsultarAgendaQuery, 'profesionalId'>, token: string) =>
+      request<AgendaProfesional>(
+        `/agenda/${profesionalId}?${aQueryString(query)}`,
+        { method: 'GET' },
+        token,
+      ),
+
+    /** `GET /agenda/mi-agenda` — atajo del profesional autenticado. */
+    miAgenda: (query: Omit<ConsultarAgendaQuery, 'profesionalId'>, token: string) =>
+      request<AgendaProfesional>(`/agenda/mi-agenda?${aQueryString(query)}`, { method: 'GET' }, token),
+
+    /** `GET /agenda/:profesionalId/disponibilidad` — slots libres para agendar un turno. */
+    disponibilidad: (profesionalId: string, query: Omit<DisponibilidadQuery, 'profesionalId'>, token: string) =>
+      request<SlotDisponible[]>(
+        `/agenda/${profesionalId}/disponibilidad?${aQueryString(query)}`,
+        { method: 'GET' },
+        token,
+      ),
   },
 };
 

@@ -46,3 +46,12 @@ export type {
   ReprogramarTurnoRequest,
 } from './dto/turno.dto';
 export { turnoFixture, liquidacionPagoFixture } from './dto/turno.dto';
+export type {
+  AgendaItem,
+  AgendaProfesional,
+  SlotDisponible,
+  ConsultarAgendaQuery,
+  DisponibilidadQuery,
+} from './dto/agenda.dto';
+export { BLOQUE_AGENDA_MIN } from './constants/agenda.constant';
+export { agendaProfesionalFixture } from './fixtures/agenda.fixture';

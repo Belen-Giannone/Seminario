@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RequestContextMiddleware } from './shared/request-context';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { PacientesModule } from './modules/pacientes/pacientes.module';
@@ -61,4 +62,9 @@ import { MetricasDesempenoModule } from './modules/metricas-desempeno/metricas-d
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Propaga el JWT del request a las costuras REST entre módulos.
+    consumer.apply(RequestContextMiddleware).forRoutes('{*splat}');
+  }
+}

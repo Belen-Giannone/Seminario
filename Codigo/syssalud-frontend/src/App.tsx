@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './lib/auth-context';
 import { ThemeProvider } from './lib/theme-context';
+import { AgendaPage } from './pages/AgendaPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { HistoriaClinicaPage } from './pages/HistoriaClinicaPage';
 import { LoginPage } from './pages/LoginPage';
@@ -66,6 +67,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <SolicitarTurnoPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agenda"
+              element={
+                <ProtectedRoute>
+                  <AgendaPage />
                 </ProtectedRoute>
               }
             />

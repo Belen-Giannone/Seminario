@@ -267,7 +267,8 @@ export class TurnosService {
       const pacienteId = await this.resolverPacienteIdDelSub(solicitante.sub);
       qb.andWhere('t.pacienteId = :pacienteIdPropio', { pacienteIdPropio: pacienteId });
     } else if (solicitante.rol === Rol.PROFESIONAL) {
-      qb.andWhere('t.profesionalId = :profesionalIdPropio', { profesionalIdPropio: solicitante.sub });
+      const profesionalId = await this.resolverProfesionalIdDelSub(solicitante.sub);
+      qb.andWhere('t.profesionalId = :profesionalIdPropio', { profesionalIdPropio: profesionalId });
     }
 
     if (query.estado) qb.andWhere('t.estado = :estado', { estado: query.estado });
@@ -275,7 +276,14 @@ export class TurnosService {
     if (query.hasta) qb.andWhere('t.fecha <= :hasta', { hasta: query.hasta });
 
     const turnos = await qb.orderBy('t.fecha', 'ASC').addOrderBy('t.hora', 'ASC').getMany();
-    return turnos.map((t) => ({ idTurno: t.id, fecha: t.fecha, hora: t.hora, estado: t.estado }));
+    return turnos.map((t) => ({
+      idTurno: t.id,
+      fecha: t.fecha,
+      hora: t.hora,
+      estado: t.estado,
+      pacienteId: t.pacienteId,
+      servicioId: t.servicioId,
+    }));
   }
 
   /** TUR-020 — atajo del paciente. */
@@ -437,7 +445,7 @@ export class TurnosService {
   private async verificarAccesoPropioOStaff(turno: Turno, solicitante: Solicitante): Promise<void> {
     if (solicitante.rol === Rol.ASISTENTE || solicitante.rol === Rol.DUENO) return;
     if (solicitante.rol === Rol.PROFESIONAL) {
-      if (turno.profesionalId !== solicitante.sub) {
+      if (turno.profesionalId !== (await this.resolverProfesionalIdDelSub(solicitante.sub))) {
         throw new ForbiddenException('No tenés acceso a este turno.');
       }
       return;
@@ -446,6 +454,18 @@ export class TurnosService {
     if (turno.pacienteId !== pacienteId) {
       throw new ForbiddenException('No tenés acceso a este turno.');
     }
+  }
+
+  /** PROFESIONAL logueado: resuelve su `Profesional.id` real a partir del `sub` del JWT. */
+  private async resolverProfesionalIdDelSub(usuarioId: string): Promise<string> {
+    const profesional = await this.profesionalesClient.porUsuario(usuarioId);
+    if (!profesional) {
+      throw new HttpException(
+        'No se pudo identificar el perfil de profesional asociado a su usuario.',
+        HttpStatus.FAILED_DEPENDENCY,
+      );
+    }
+    return profesional.id;
   }
 
   /** PACIENTE logueado: resuelve su `Paciente.id` real a partir del `sub` del JWT. */

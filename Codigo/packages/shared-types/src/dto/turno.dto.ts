@@ -27,6 +27,9 @@ export interface TurnoResumen {
   fecha: string;
   hora: string;
   estado: EstadoTurno;
+  /** Presentes en `GET /api/turnos` (los consume Agenda para armar CUU05). */
+  pacienteId?: string;
+  servicioId?: string;
 }
 
 export interface SolicitarTurnoRequest {

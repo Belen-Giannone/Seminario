@@ -34,4 +34,17 @@ export class ProfesionalesClient {
     );
     return 'desconocido';
   }
+
+  /**
+   * `GET /api/profesionales/por-usuario/:usuarioId`: el `Profesional.id` del
+   * usuario PROFESIONAL logueado (no coincide con el `sub` del JWT).
+   */
+  async porUsuario(usuarioId: string): Promise<{ id: string } | null> {
+    const res = await getOrDegrade<{ id: string }>(
+      this.http,
+      `${this.baseUrl}/profesionales/por-usuario/${usuarioId}`,
+    );
+    if (res.kind === 'ok') return { id: res.data.id };
+    return null;
+  }
 }
