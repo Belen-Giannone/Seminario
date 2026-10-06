@@ -2,6 +2,7 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfesionalesClient } from './clients/profesionales.client';
+import { TurnosClient } from './clients/turnos.client';
 import { ServicioProfesional } from './entities/servicio-profesional.entity';
 import { Servicio } from './entities/servicio.entity';
 import { ServiciosController } from './servicios.controller';
@@ -18,6 +19,6 @@ import { ServiciosService } from './servicios.service';
     HttpModule,
   ],
   controllers: [ServiciosController],
-  providers: [ServiciosService, ProfesionalesClient],
+  providers: [ServiciosService, ProfesionalesClient, TurnosClient],
 })
 export class ServiciosModule {}

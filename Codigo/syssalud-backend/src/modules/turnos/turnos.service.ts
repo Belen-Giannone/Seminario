@@ -262,6 +262,8 @@ export class TurnosService {
     if (query.pacienteId) qb.andWhere('t.pacienteId = :pacienteId', { pacienteId: query.pacienteId });
     if (query.profesionalId)
       qb.andWhere('t.profesionalId = :profesionalId', { profesionalId: query.profesionalId });
+    if (query.servicioId)
+      qb.andWhere('t.servicioId = :servicioId', { servicioId: query.servicioId });
 
     if (solicitante.rol === Rol.PACIENTE) {
       const pacienteId = await this.resolverPacienteIdDelSub(solicitante.sub);

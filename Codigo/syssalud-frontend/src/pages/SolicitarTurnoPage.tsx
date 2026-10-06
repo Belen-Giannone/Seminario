@@ -5,6 +5,7 @@ import {
   MetodoPago,
   Rol,
   type LiquidacionPago,
+  type PacienteResumen,
   type ProfesionalDelServicio,
   type Servicio,
   type SlotDisponible,
@@ -162,15 +163,7 @@ function FormularioSolicitud({ esAsistente, token, onSolicitado }: FormularioSol
   return (
     <Card className="p-5">
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        {esAsistente && (
-          <FormField
-            label="Id del paciente"
-            value={pacienteId}
-            onChange={(e) => setPacienteId(e.target.value)}
-            placeholder="UUID del paciente"
-            required
-          />
-        )}
+        {esAsistente && <SelectorPaciente token={token} onSeleccionar={setPacienteId} />}
         <SelectField id="servicio" label="Servicio" value={servicioId} onChange={(e) => setServicioId(e.target.value)} required>
           <option value="">{servicios.length ? 'Elegí un servicio' : 'No hay servicios disponibles'}</option>
           {servicios.map((s) => (
@@ -227,7 +220,7 @@ function FormularioSolicitud({ esAsistente, token, onSolicitado }: FormularioSol
         {error && <Alert tono="error">{error}</Alert>}
 
         <div className="flex gap-2">
-          <Button type="submit" disabled={enviando || !hora} className="flex-1">
+          <Button type="submit" disabled={enviando || !hora || (esAsistente && !pacienteId)} className="flex-1">
             {enviando ? 'Solicitando…' : 'Solicitar turno'}
           </Button>
           <Link to="/turnos" className="shrink-0">
@@ -238,6 +231,107 @@ function FormularioSolicitud({ esAsistente, token, onSolicitado }: FormularioSol
         </div>
       </form>
     </Card>
+  );
+}
+
+interface SelectorPacienteProps {
+  token: string;
+  onSeleccionar: (pacienteId: string) => void;
+}
+
+/** El asistente busca al paciente por DNI o apellido (Pacientes, PAC-014). */
+function SelectorPaciente({ token, onSeleccionar }: SelectorPacienteProps) {
+  const [busqueda, setBusqueda] = useState('');
+  const [resultados, setResultados] = useState<PacienteResumen[]>([]);
+  const [elegido, setElegido] = useState<PacienteResumen | null>(null);
+  const [buscando, setBuscando] = useState(false);
+
+  useEffect(() => {
+    if (elegido || busqueda.trim().length < 2) {
+      setResultados([]);
+      return;
+    }
+    let vigente = true;
+    setBuscando(true);
+    const timer = setTimeout(() => {
+      api.pacientes
+        .buscar(busqueda, token)
+        .then((lista) => {
+          if (vigente) setResultados(lista.slice(0, 6));
+        })
+        .catch(() => {
+          if (vigente) setResultados([]);
+        })
+        .finally(() => {
+          if (vigente) setBuscando(false);
+        });
+    }, 300);
+    return () => {
+      vigente = false;
+      clearTimeout(timer);
+    };
+  }, [busqueda, elegido, token]);
+
+  if (elegido) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Paciente</span>
+        <div className="flex items-center justify-between rounded-md border border-teal-500 bg-teal-50/60 px-3 py-2 text-sm dark:bg-teal-500/10">
+          <span>
+            <span className="font-medium text-slate-900 dark:text-slate-50">{elegido.nombreCompleto}</span>
+            <span className="ml-2 font-mono text-slate-500 dark:text-slate-400">DNI {elegido.dni}</span>
+          </span>
+          <Button
+            tamano="sm"
+            variante="fantasma"
+            onClick={() => {
+              setElegido(null);
+              onSeleccionar('');
+            }}
+          >
+            Cambiar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <FormField
+        id="paciente"
+        label="Paciente"
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+        placeholder="Buscar por DNI o apellido"
+        autoComplete="off"
+      />
+      {busqueda.trim().length >= 2 && (
+        <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          {resultados.length === 0 ? (
+            <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
+              {buscando ? 'Buscando…' : 'No se encontraron pacientes.'}
+            </li>
+          ) : (
+            resultados.map((p) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setElegido(p);
+                    onSeleccionar(p.id);
+                  }}
+                  className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none dark:hover:bg-slate-800 dark:focus-visible:bg-slate-800"
+                >
+                  <span className="font-medium text-slate-900 dark:text-slate-50">{p.nombreCompleto}</span>
+                  <span className="font-mono text-slate-500 dark:text-slate-400">DNI {p.dni}</span>
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
   );
 }
 

@@ -15,6 +15,7 @@ import type {
 } from '@syssalud/shared-types';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
 import { ProfesionalesClient } from './clients/profesionales.client';
+import { TurnosClient } from './clients/turnos.client';
 import { ActualizarServicioDto } from './dto/actualizar-servicio.dto';
 import { CrearServicioDto } from './dto/crear-servicio.dto';
 import { ServicioProfesional } from './entities/servicio-profesional.entity';
@@ -39,6 +40,7 @@ export class ServiciosService {
     private readonly asociaciones: Repository<ServicioProfesional>,
     private readonly profesionalesClient: ProfesionalesClient,
     private readonly dataSource: DataSource,
+    private readonly turnosClient: TurnosClient,
   ) {}
 
   /** SER-005: readiness real de la costura y modo de validación. */
@@ -132,9 +134,23 @@ export class ServiciosService {
     return this.obtener(id);
   }
 
-  /** SER-019 / SER-009 — baja lógica: el registro queda para turnos históricos y métricas. */
+  /**
+   * SER-019 / SER-009 — baja lógica: el registro queda para turnos históricos y
+   * métricas. Se rechaza con 409 si hay turnos vigentes desde hoy; si Turnos no
+   * responde se permite con WARN (los turnos ya tomados conservan su servicio).
+   */
   async darDeBaja(id: string): Promise<void> {
     const servicio = await this.buscarOFallar(id);
+    const futuros = await this.turnosClient.turnosFuturos(id);
+    if (futuros === null) {
+      this.logger.warn(
+        `Baja del servicio ${id} sin verificar turnos futuros (Turnos no disponible).`,
+      );
+    } else if (futuros > 0) {
+      throw new ConflictException(
+        `No se puede dar de baja: el servicio tiene ${futuros} turno${futuros === 1 ? '' : 's'} pendiente${futuros === 1 ? '' : 's'}. Cancelalos o reprogramalos primero.`,
+      );
+    }
     servicio.activo = false;
     await this.servicios.save(servicio);
   }

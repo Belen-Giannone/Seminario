@@ -80,13 +80,16 @@ function crearService(
     disponible: jest.fn().mockResolvedValue(true),
   } as unknown as jest.Mocked<ProfesionalesClient>;
 
+  const turnosClient = { turnosFuturos: jest.fn().mockResolvedValue(0) };
+
   const service = new ServiciosService(
     servicios as never,
     {} as never,
     profesionalesClient,
     dataSource as never,
+    turnosClient as never,
   );
-  return { service, servicios, qb, tx, profesionalesClient };
+  return { service, servicios, qb, tx, profesionalesClient, turnosClient };
 }
 
 const alta = {
@@ -236,6 +239,27 @@ describe('ServiciosService', () => {
         service.actualizar(SERV_ID, { precio: 1 }),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
+  });
+
+  it('darDeBaja: 409 si el servicio tiene turnos vigentes desde hoy (SER-019)', async () => {
+    const { service, servicios, turnosClient } = crearService();
+    turnosClient.turnosFuturos.mockResolvedValue(2);
+
+    await expect(service.darDeBaja(SERV_ID)).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    expect(servicios.save).not.toHaveBeenCalled();
+  });
+
+  it('darDeBaja: si Turnos no responde, permite la baja (con WARN)', async () => {
+    const { service, servicios, turnosClient } = crearService();
+    turnosClient.turnosFuturos.mockResolvedValue(null);
+
+    await service.darDeBaja(SERV_ID);
+
+    expect(servicios.save).toHaveBeenCalledWith(
+      expect.objectContaining({ activo: false }),
+    );
   });
 
   it('darDeBaja es lógica: marca activo=false y no borra (SER-009)', async () => {

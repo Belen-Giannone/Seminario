@@ -10,6 +10,11 @@ export class ListarTurnosQueryDto {
   @IsUUID()
   profesionalId?: string;
 
+  /** Lo usa Servicios para no dar de baja un servicio con turnos futuros (SER-019). */
+  @IsOptional()
+  @IsUUID()
+  servicioId?: string;
+
   @IsOptional()
   @IsEnum(EstadoTurno)
   estado?: EstadoTurno;

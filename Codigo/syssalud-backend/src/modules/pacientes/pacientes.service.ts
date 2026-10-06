@@ -128,9 +128,11 @@ export class PacientesService {
       .where('p.estado != :inactivo', { inactivo: EstadoPaciente.INACTIVO });
 
     if (params.buscar) {
-      qb.andWhere('(p.dni ILIKE :q OR p.apellido ILIKE :q)', {
-        q: `%${params.buscar}%`,
-      });
+      // Sin distinguir acentos: "gomez" encuentra "Gómez" (translate evita depender de la extensión unaccent).
+      qb.andWhere(
+        `(p.dni ILIKE :q OR translate(lower(p.apellido), :conAcento, :sinAcento) LIKE translate(lower(:q), :conAcento, :sinAcento))`,
+        { q: `%${params.buscar}%`, conAcento: 'áéíóúüñ', sinAcento: 'aeiouun' },
+      );
     }
 
     const pacientes = await qb

@@ -48,7 +48,7 @@ CUU02 — Solicitar turno · CUU03 — Cancelar turno · CUU04 — Reprogramar t
 | GET | `/_estado` | Readiness de las 6 costuras y modo de validación |
 | POST | `/` | Solicita un turno (CUU02 pasos 3-4): valida RN06/RN07/RN09/RN19, calcula el monto, reserva en `SOLICITADO` |
 | POST | `/:id/pago` | Paga y confirma (CUU02 paso 5, RN11/RN16/RN20); idempotente por `idTransaccion` |
-| GET | `/` | Listado filtrado por rol (`?pacienteId=&profesionalId=&estado=&desde=&hasta=`); la consumen Agenda, Historia Clínica y Métricas |
+| GET | `/` | Listado filtrado por rol (`?pacienteId=&profesionalId=&servicioId=&estado=&desde=&hasta=`); la consumen Agenda, Historia Clínica, Servicios y Métricas |
 | GET | `/mis-turnos` | Atajo del paciente: sus turnos vigentes (`turnos_vigentes`) |
 | GET | `/:id` | Detalle (403 si no es propio) |
 | POST | `/:id/cancelar` | CUU03: RN12/RN13/RN22 (plazo de 24h para el paciente), ajusta reembolso (RN21/RN23) |
@@ -88,9 +88,9 @@ CUU10 — Mantener catálogo de servicios (RN03). Escritura sólo para `ASISTENT
 | GET | `/:id/profesionales` | Profesionales que brindan el servicio (lo usa Turnos) |
 | POST | `/` | Alta. `409` nombre repetido (sin distinguir mayúsculas), `400` profesionales inválidos |
 | PATCH | `/:id` | Modificación parcial (sólo precio, profesionales, reactivar con `activo: true`) |
-| DELETE | `/:id` | Baja lógica (`204`) |
+| DELETE | `/:id` | Baja lógica (`204`); `409` si tiene turnos vigentes desde hoy (consulta a Turnos) |
 
-Costura `ProfesionalesClient` → `GET /api/profesionales?ids=` (reenvía el JWT). Si Profesionales no responde: `lenient` acepta con `WARN`; `strict` responde `424`. Variables: `PROFESIONALES_API_URL`, `SERVICIOS_VALIDAR_PROFESIONALES` (`lenient` | `strict`). La duración debe ser múltiplo de `BLOQUE_AGENDA_MIN` (15 min, shared-types). Ver `docs/modulo-servicios-requerimientos.md`.
+Costuras `ProfesionalesClient` → `GET /api/profesionales?ids=` y `TurnosClient` → `GET /api/turnos?servicioId=&desde=` (ambas reenvían el JWT). Si Profesionales no responde: `lenient` acepta con `WARN`; `strict` responde `424`. Variables: `PROFESIONALES_API_URL`, `SERVICIOS_VALIDAR_PROFESIONALES` (`lenient` | `strict`). La duración debe ser múltiplo de `BLOQUE_AGENDA_MIN` (15 min, shared-types). Ver `docs/modulo-servicios-requerimientos.md`.
 
 ```
 Turnos ──GET /servicios/:id, /:id/profesionales──▶ Servicios ──GET /profesionales?ids=──▶ Profesionales

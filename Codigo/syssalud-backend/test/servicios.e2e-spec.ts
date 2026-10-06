@@ -7,6 +7,7 @@ import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { AppModule } from './../src/app.module';
 import { ProfesionalesClient } from './../src/modules/servicios/clients/profesionales.client';
+import { TurnosClient } from './../src/modules/servicios/clients/turnos.client';
 
 /**
  * SER-042 — e2e del catálogo: POST → GET → PATCH precio → DELETE como ASISTENTE,
@@ -14,6 +15,8 @@ import { ProfesionalesClient } from './../src/modules/servicios/clients/profesio
  * Requiere PostgreSQL levantado y los usuarios demo (`npm run seed`).
  */
 const PROF_OK = randomUUID();
+/** Turnos vigentes que informa el doble de Turnos (SER-019). */
+let turnosFuturos = 0;
 
 async function levantar(costura: 'viva' | 'caida', modo: 'lenient' | 'strict') {
   process.env.SERVICIOS_VALIDAR_PROFESIONALES = modo;
@@ -47,6 +50,8 @@ async function levantar(costura: 'viva' | 'caida', modo: 'lenient' | 'strict') {
   const modulo = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(ProfesionalesClient)
     .useValue(profesionales)
+    .overrideProvider(TurnosClient)
+    .useValue({ turnosFuturos: () => Promise.resolve(turnosFuturos) })
     .compile();
   const app = modulo.createNestApplication<INestApplication<App>>();
   app.setGlobalPrefix('api');
@@ -147,6 +152,12 @@ describe('Servicios (e2e)', () => {
       .expect(200);
     expect((cambio.body as Servicio).precio).toBe(1250.5);
 
+    turnosFuturos = 1;
+    await request(server)
+      .delete(`/api/servicios/${creado.id}`)
+      .set('Authorization', auth)
+      .expect(409);
+    turnosFuturos = 0;
     await request(server)
       .delete(`/api/servicios/${creado.id}`)
       .set('Authorization', auth)
