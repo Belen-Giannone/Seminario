@@ -78,15 +78,17 @@ export class AuthService {
   async crearUsuarioInterno(datos: {
     nombre: string;
     apellido: string;
-    dni: string;
-    fechaNacimiento: string;
-    telefono: string;
+    dni?: string;
+    fechaNacimiento?: string;
+    telefono?: string;
     email: string;
-    domicilio: string;
+    domicilio?: string;
     rol: Rol;
   }): Promise<UsuarioCreado> {
     const existente = await this.usuarios.findOne({
-      where: [{ email: datos.email }, { dni: datos.dni }],
+      where: datos.dni
+        ? [{ email: datos.email }, { dni: datos.dni }]
+        : [{ email: datos.email }],
     });
     if (existente) {
       throw new ConflictException(
@@ -97,7 +99,17 @@ export class AuthService {
     const passwordInicial = randomBytes(6).toString('hex');
     const passwordHash = await bcrypt.hash(passwordInicial, 10);
     const usuario = await this.usuarios.save(
-      this.usuarios.create({ ...datos, passwordHash }),
+      this.usuarios.create({
+        nombre: datos.nombre,
+        apellido: datos.apellido,
+        email: datos.email,
+        rol: datos.rol,
+        dni: datos.dni ?? null,
+        fechaNacimiento: datos.fechaNacimiento ?? null,
+        telefono: datos.telefono ?? null,
+        domicilio: datos.domicilio ?? null,
+        passwordHash,
+      }),
     );
 
     return { ...this.aResumen(usuario), passwordInicial };

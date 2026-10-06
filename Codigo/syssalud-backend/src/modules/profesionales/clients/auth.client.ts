@@ -35,10 +35,7 @@ export class AuthClient {
         nombre: datos.nombre,
         apellido: datos.apellido,
         email: datos.email,
-        dni: datos.dni ?? '',
-        fechaNacimiento: '',
-        telefono: '',
-        domicilio: '',
+        dni: datos.dni,
         rol: Rol.PROFESIONAL,
       });
     } catch (error) {
