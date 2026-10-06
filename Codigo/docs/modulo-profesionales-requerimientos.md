@@ -2,7 +2,7 @@
 
 **Cubre:** alta y mantenimiento de profesionales médicos y de sus **horarios de atención**. Sin CUU propio, pero es insumo obligatorio de Servicios (CUU10), Agenda (CUU05), Turnos (CUU02–04) y Métricas (CUU07–08).
 **Pareja responsable:** Pareja B (Servicios & Profesionales).
-**Estado actual:** esqueleto (`profesionales.module.ts`, `profesionales.controller.ts` con `GET /profesionales` de ping, `profesionales.service.ts` con `estado()`). Sin entidad, DTOs, persistencia, RBAC ni frontend.
+**Estado actual:** implementado (entidad `Profesional`/`HorarioAtencion`, `AuthClient`, RBAC, seed y frontend). Ver `syssalud-backend/README.md`.
 **Referencia de arquitectura:** `docs/_comun-arquitectura.md`.
 
 ## Contexto de negocio

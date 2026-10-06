@@ -1,11 +1,17 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { DiaSemana, Rol, type HorarioAtencionInput, type Profesional, type ProfesionalResumen } from '@syssalud/shared-types';
+import { useEffect, useState, type FormEvent } from 'react';
+import {
+  DiaSemana,
+  Rol,
+  type HorarioAtencionInput,
+  type Profesional,
+  type ProfesionalResumen,
+} from '@syssalud/shared-types';
+import { Alert } from '../components/Alert';
+import { AppShell, Card, PageHeader } from '../components/AppShell';
+import { Button } from '../components/Button';
+import { FormField, claseCampo } from '../components/FormField';
 import { api, ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth-context';
-import { Brand } from '../components/Brand';
-import { FormField } from '../components/FormField';
-import { ThemeToggle } from '../components/ThemeToggle';
 
 const ETIQUETA_DIA: Record<DiaSemana, string> = {
   [DiaSemana.LUNES]: 'Lunes',
@@ -19,12 +25,22 @@ function mensajeDe(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
+/** Alta y horarios de atención de profesionales (PRO-027/028). */
 export function ProfesionalesPage() {
-  const { usuario, token, logout } = useAuth();
+  return (
+    <AppShell roles={[Rol.ASISTENTE, Rol.DUENO, Rol.PROFESIONAL]}>
+      <Profesionales />
+    </AppShell>
+  );
+}
+
+function Profesionales() {
+  const { usuario, token } = useAuth();
   const [profesionales, setProfesionales] = useState<ProfesionalResumen[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
+  const [mostrarAlta, setMostrarAlta] = useState(false);
   const [recarga, setRecarga] = useState(0);
 
   const esStaff = usuario?.rol === Rol.ASISTENTE || usuario?.rol === Rol.DUENO;
@@ -38,10 +54,10 @@ export function ProfesionalesPage() {
       .then((data) => {
         if (!vigente) return;
         setProfesionales(data);
-        setError(null);
+        setError('');
       })
       .catch((err: unknown) => {
-        if (vigente) setError(mensajeDe(err, 'No se pudo cargar la lista'));
+        if (vigente) setError(mensajeDe(err, 'No se pudo cargar la lista.'));
       })
       .finally(() => {
         if (vigente) setCargando(false);
@@ -54,45 +70,46 @@ export function ProfesionalesPage() {
   if (!usuario || !token) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 transition-theme dark:bg-slate-950">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur transition-theme dark:border-slate-800 dark:bg-slate-950/80">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Brand />
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <button
-              type="button"
-              onClick={logout}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition-theme hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+    <>
+      <PageHeader
+        titulo="Profesionales"
+        descripcion="Alta y horarios de atención."
+        acciones={
+          esStaff && (
+            <Button
+              onClick={() => setMostrarAlta((v) => !v)}
+              variante={mostrarAlta ? 'secundario' : 'primario'}
             >
-              Cerrar sesión
-            </button>
-          </div>
+              {mostrarAlta ? 'Cancelar' : '+ Nuevo profesional'}
+            </Button>
+          )
+        }
+      />
+
+      {mostrarAlta && (
+        <div className="mt-6">
+          <FormularioAltaProfesional
+            token={token}
+            onCreado={() => {
+              setRecarga((n) => n + 1);
+            }}
+          />
         </div>
-      </header>
+      )}
 
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <div>
-          <Link to="/dashboard" className="text-sm text-teal-600 hover:underline dark:text-teal-400">
-            ← Volver al dashboard
-          </Link>
-          <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-50">Profesionales</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Alta y horarios de atención.</p>
-        </div>
-
-        {esStaff && <FormularioAltaProfesional token={token} onCreado={() => setRecarga((n) => n + 1)} />}
-
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">Listado</h2>
-
-          {cargando && <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Cargando…</p>}
-          {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
-
-          {!cargando && !error && profesionales.length === 0 && (
-            <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Todavía no hay profesionales cargados.</p>
-          )}
-
-          <div className="mt-4 flex flex-col gap-4">
+      <section className="mt-8">
+        {cargando && profesionales.length === 0 ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">Cargando…</p>
+        ) : error ? (
+          <Alert tono="error">{error}</Alert>
+        ) : profesionales.length === 0 ? (
+          <Card className="border-dashed p-8 text-center">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Todavía no hay profesionales cargados.
+            </p>
+          </Card>
+        ) : (
+          <div className="flex flex-col gap-4">
             {profesionales.map((prof) => (
               <ProfesionalCard
                 key={prof.id}
@@ -107,16 +124,16 @@ export function ProfesionalesPage() {
               />
             ))}
           </div>
-        </section>
-      </main>
-    </div>
+        )}
+      </section>
+    </>
   );
 }
 
 function FormularioAltaProfesional({ token, onCreado }: { token: string; onCreado: () => void }) {
   const [form, setForm] = useState({ nombre: '', apellido: '', email: '', dni: '', especialidad: '', matricula: '' });
   const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [credencial, setCredencial] = useState<{ email: string; passwordInicial: string } | null>(null);
 
   const campo = (nombre: keyof typeof form) => ({
@@ -125,10 +142,10 @@ function FormularioAltaProfesional({ token, onCreado }: { token: string; onCread
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => setForm((prev) => ({ ...prev, [nombre]: e.target.value })),
   });
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setEnviando(true);
-    setError(null);
+    setError('');
     try {
       const { profesional, passwordInicial } = await api.profesionales.crear(
         { ...form, dni: form.dni || undefined },
@@ -138,53 +155,47 @@ function FormularioAltaProfesional({ token, onCreado }: { token: string; onCread
       setForm({ nombre: '', apellido: '', email: '', dni: '', especialidad: '', matricula: '' });
       onCreado();
       if (!profesional.usuarioId) {
-        setError(
-          'El profesional se creó, pero Auth no respondió: no se pudo generar su usuario de acceso todavía.',
-        );
+        setError('El profesional se creó, pero Auth no respondió: no se pudo generar su usuario de acceso todavía.');
       }
     } catch (err) {
-      setError(mensajeDe(err, 'No se pudo crear el profesional'));
+      setError(mensajeDe(err, 'No se pudo crear el profesional.'));
     } finally {
       setEnviando(false);
     }
   }
 
   return (
-    <section className="mt-6 rounded-lg border border-slate-200 bg-white p-6 transition-theme dark:border-slate-800 dark:bg-slate-900">
+    <Card className="p-5">
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">Dar de alta un profesional</h2>
-      <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Crea el usuario de acceso y el registro del profesional en un solo paso.
       </p>
 
       {credencial && (
-        <div className="mt-4 rounded-md border border-teal-200 bg-teal-50 p-3 text-sm text-teal-800 dark:border-teal-900/50 dark:bg-teal-950/40 dark:text-teal-300">
+        <Alert tono="exito" className="mt-4">
           Profesional creado. Credencial inicial para <strong>{credencial.email}</strong>: código{' '}
           <code className="font-mono">{credencial.passwordInicial}</code> — comunicásela ahora, no se vuelve a
           mostrar.
-        </div>
+        </Alert>
       )}
 
       <form onSubmit={handleSubmit} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <FormField label="Nombre" required {...campo('nombre')} />
-        <FormField label="Apellido" required {...campo('apellido')} />
+        <FormField label="Nombre" autoComplete="off" required {...campo('nombre')} />
+        <FormField label="Apellido" autoComplete="off" required {...campo('apellido')} />
         <FormField label="Email" type="email" required {...campo('email')} />
         <FormField label="DNI (opcional)" {...campo('dni')} />
         <FormField label="Especialidad" required placeholder="Dermatología" {...campo('especialidad')} />
         <FormField label="Matrícula" required placeholder="MP12345" {...campo('matricula')} />
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400 sm:col-span-3">{error}</p>}
+        {error && <Alert tono="error" className="sm:col-span-3">{error}</Alert>}
 
         <div className="sm:col-span-3">
-          <button
-            type="submit"
-            disabled={enviando}
-            className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-theme hover:bg-teal-700 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={enviando}>
             {enviando ? 'Creando…' : 'Crear profesional'}
-          </button>
+          </Button>
         </div>
       </form>
-    </section>
+    </Card>
   );
 }
 
@@ -211,7 +222,7 @@ function ProfesionalCard({
 }: ProfesionalCardProps) {
   const [detalle, setDetalle] = useState<Profesional | null>(null);
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!expandido) return;
@@ -223,7 +234,7 @@ function ProfesionalCard({
         if (vigente) setDetalle(data);
       })
       .catch((err: unknown) => {
-        if (vigente) setError(mensajeDe(err, 'No se pudo cargar el detalle'));
+        if (vigente) setError(mensajeDe(err, 'No se pudo cargar el detalle.'));
       })
       .finally(() => {
         if (vigente) setCargandoDetalle(false);
@@ -237,7 +248,7 @@ function ProfesionalCard({
   const puedeEditarHorarios = puedeEditarDatos || (rol === Rol.PROFESIONAL && detalle?.usuarioId === usuarioId);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 transition-theme dark:border-slate-800 dark:bg-slate-900">
+    <Card className="p-5">
       <button type="button" onClick={onToggle} className="flex w-full items-center justify-between text-left">
         <div>
           <h3 className="font-medium text-slate-900 dark:text-slate-50">
@@ -246,7 +257,7 @@ function ProfesionalCard({
           <p className="text-sm text-slate-500 dark:text-slate-400">{resumen.especialidad}</p>
         </div>
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
             resumen.activo
               ? 'bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-300'
               : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
@@ -259,7 +270,7 @@ function ProfesionalCard({
       {expandido && (
         <div className="mt-4 border-t border-slate-100 pt-4 dark:border-slate-800">
           {cargandoDetalle && <p className="text-sm text-slate-500 dark:text-slate-400">Cargando…</p>}
-          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          {error && <Alert tono="error">{error}</Alert>}
           {detalle && (
             <DetalleProfesional
               detalle={detalle}
@@ -274,7 +285,7 @@ function ProfesionalCard({
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -317,14 +328,9 @@ function DetalleProfesional({
       </dl>
 
       {puedeEditarDatos && (
-        <button
-          type="button"
-          onClick={toggleActivo}
-          disabled={guardandoBaja}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition-theme hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-        >
+        <Button variante="secundario" tamano="sm" onClick={toggleActivo} disabled={guardandoBaja}>
           {detalle.activo ? 'Dar de baja' : 'Reactivar'}
-        </button>
+        </Button>
       )}
 
       <EditorHorarios
@@ -357,16 +363,20 @@ function EditorHorarios({
 }) {
   const [editando, setEditando] = useState(false);
   const [filas, setFilas] = useState<HorarioAtencionInput[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
 
   function empezarEdicion() {
     setFilas(
       horariosActuales.length
-        ? horariosActuales.map((h) => ({ diaSemana: h.diaSemana, horaInicio: h.horaInicio.slice(0, 5), horaFin: h.horaFin.slice(0, 5) }))
+        ? horariosActuales.map((h) => ({
+            diaSemana: h.diaSemana,
+            horaInicio: h.horaInicio.slice(0, 5),
+            horaFin: h.horaFin.slice(0, 5),
+          }))
         : [filaVacia()],
     );
-    setError(null);
+    setError('');
     setEditando(true);
   }
 
@@ -376,13 +386,13 @@ function EditorHorarios({
 
   async function guardar() {
     setGuardando(true);
-    setError(null);
+    setError('');
     try {
       await api.profesionales.definirHorarios(profesionalId, { horarios: filas }, token);
       setEditando(false);
       onGuardado();
     } catch (err) {
-      setError(mensajeDe(err, 'No se pudieron guardar los horarios'));
+      setError(mensajeDe(err, 'No se pudieron guardar los horarios.'));
     } finally {
       setGuardando(false);
     }
@@ -406,7 +416,7 @@ function EditorHorarios({
           <button
             type="button"
             onClick={empezarEdicion}
-            className="mt-2 text-sm font-medium text-teal-600 hover:underline dark:text-teal-400"
+            className="mt-2 rounded text-sm font-medium text-teal-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:text-teal-400"
           >
             Editar horarios
           </button>
@@ -417,14 +427,16 @@ function EditorHorarios({
 
   return (
     <div>
-      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">Editar horarios (reemplaza el set completo)</h4>
+      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        Editar horarios (reemplaza el set completo)
+      </h4>
       <div className="mt-2 space-y-2">
         {filas.map((fila, i) => (
           <div key={i} className="flex flex-wrap items-center gap-2">
             <select
               value={fila.diaSemana}
               onChange={(e) => actualizarFila(i, { diaSemana: Number(e.target.value) as DiaSemana })}
-              className="rounded-md border border-slate-300 px-2 py-1.5 text-sm transition-theme dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className={`${claseCampo()} w-auto`}
             >
               {Object.entries(ETIQUETA_DIA).map(([valor, etiqueta]) => (
                 <option key={valor} value={valor}>
@@ -436,18 +448,18 @@ function EditorHorarios({
               type="time"
               value={fila.horaInicio}
               onChange={(e) => actualizarFila(i, { horaInicio: e.target.value })}
-              className="rounded-md border border-slate-300 px-2 py-1.5 text-sm transition-theme dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className={`${claseCampo()} w-auto`}
             />
             <input
               type="time"
               value={fila.horaFin}
               onChange={(e) => actualizarFila(i, { horaFin: e.target.value })}
-              className="rounded-md border border-slate-300 px-2 py-1.5 text-sm transition-theme dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className={`${claseCampo()} w-auto`}
             />
             <button
               type="button"
               onClick={() => setFilas((prev) => prev.filter((_, idx) => idx !== i))}
-              className="text-xs font-medium text-red-600 hover:underline dark:text-red-400"
+              className="rounded text-xs font-medium text-red-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:text-red-400"
             >
               Quitar
             </button>
@@ -455,35 +467,25 @@ function EditorHorarios({
         ))}
       </div>
 
-      <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          onClick={() => setFilas((prev) => [...prev, filaVacia()])}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition-theme hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-        >
+      <div className="mt-3">
+        <Button variante="secundario" tamano="sm" onClick={() => setFilas((prev) => [...prev, filaVacia()])}>
           + Agregar franja
-        </button>
+        </Button>
       </div>
 
-      {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && (
+        <Alert tono="error" className="mt-2">
+          {error}
+        </Alert>
+      )}
 
       <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          onClick={guardar}
-          disabled={guardando || filas.length === 0}
-          className="rounded-md bg-teal-600 px-3 py-1.5 text-xs font-medium text-white transition-theme hover:bg-teal-700 disabled:opacity-50"
-        >
+        <Button tamano="sm" onClick={guardar} disabled={guardando || filas.length === 0}>
           Guardar
-        </button>
-        <button
-          type="button"
-          onClick={() => setEditando(false)}
-          disabled={guardando}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition-theme dark:border-slate-700 dark:text-slate-300"
-        >
+        </Button>
+        <Button variante="secundario" tamano="sm" onClick={() => setEditando(false)} disabled={guardando}>
           Cancelar
-        </button>
+        </Button>
       </div>
     </div>
   );
