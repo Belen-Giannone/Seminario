@@ -2,6 +2,7 @@ import { DiaSemana } from '@syssalud/shared-types';
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -9,15 +10,17 @@ import {
 import { Profesional } from './profesional.entity';
 
 /**
- * Franja horaria en la que un profesional atiende un día de la semana.
- * Agenda consulta esto vía `ProfesionalesService.horariosDe(...)` — no
- * accede a esta tabla directamente (ver TODO original del módulo).
+ * Franja horaria en la que un profesional atiende un día de la semana
+ * (sólo lunes a viernes, RN07 — ver `DiaSemana`). Agenda, Turnos y Métricas
+ * la consultan por la costura REST `GET /api/profesionales/:id/horarios`
+ * (PRO-015), nunca inyectando `ProfesionalesService` (PRO-001/PRO-005).
  */
 @Entity('horarios_atencion')
 export class HorarioAtencion {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
   @Column()
   profesionalId: string;
 

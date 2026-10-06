@@ -1,12 +1,14 @@
 import type {
+  ActualizarProfesionalRequest,
   AuthResponse,
-  LoginRequest,
-  RegisterPacienteRequest,
-  UsuarioPerfil, 
-  Profesional,
   CrearProfesionalRequest,
-  CrearHorarioRequest,
+  DefinirHorariosRequest,
   HorarioAtencion,
+  LoginRequest,
+  Profesional,
+  ProfesionalResumen,
+  RegisterPacienteRequest,
+  UsuarioPerfil,
 } from '@syssalud/shared-types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
@@ -62,21 +64,35 @@ export const api = {
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
   me: (token: string) => request<UsuarioPerfil>('/auth/me', { method: 'GET' }, token),
-  listarProfesionales: (token: string) =>
-    request<Profesional[]>('/profesionales', { method: 'GET' }, token),
 
-  obtenerProfesional: (id: string, token: string) =>
-    request<Profesional>(`/profesionales/${id}`, { method: 'GET' }, token),
-
-  crearProfesional: (data: CrearProfesionalRequest, token: string) =>
-    request<Profesional>('/profesionales', { method: 'POST', body: JSON.stringify(data) }, token),
-
-  agregarHorarioProfesional: (profesionalId: string, data: CrearHorarioRequest, token: string) =>
-    request<HorarioAtencion>(
-      `/profesionales/${profesionalId}/horarios`,
-      { method: 'POST', body: JSON.stringify(data) },
-      token,
-    ),
+  profesionales: {
+    listar: (params: { ids?: string[]; activos?: boolean }, token: string) => {
+      const query = new URLSearchParams();
+      if (params.ids?.length) query.set('ids', params.ids.join(','));
+      if (params.activos !== undefined) query.set('activos', String(params.activos));
+      return request<ProfesionalResumen[]>(`/profesionales?${query}`, {}, token);
+    },
+    obtener: (id: string, token: string) =>
+      request<Profesional>(`/profesionales/${encodeURIComponent(id)}`, {}, token),
+    crear: (data: CrearProfesionalRequest, token: string) =>
+      request<{ profesional: Profesional; passwordInicial: string | null }>(
+        '/profesionales',
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+    actualizar: (id: string, data: ActualizarProfesionalRequest, token: string) =>
+      request<Profesional>(
+        `/profesionales/${encodeURIComponent(id)}`,
+        { method: 'PATCH', body: JSON.stringify(data) },
+        token,
+      ),
+    definirHorarios: (id: string, data: DefinirHorariosRequest, token: string) =>
+      request<HorarioAtencion[]>(
+        `/profesionales/${encodeURIComponent(id)}/horarios`,
+        { method: 'PUT', body: JSON.stringify(data) },
+        token,
+      ),
+  },
 };
 
 export { ApiError };

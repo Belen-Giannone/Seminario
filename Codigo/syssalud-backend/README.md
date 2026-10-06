@@ -25,6 +25,23 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Módulo Profesionales (`/api/profesionales`)
+
+Alta y mantenimiento de profesionales médicos y sus horarios de atención (RN07: sólo lunes a viernes). Sin CUU propio; es insumo de Servicios (`SER-021`), Agenda, Turnos y Métricas.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/_estado` | Readiness de la costura Auth y modo de validación |
+| POST | `/` | Alta en un paso: crea el `Usuario` (Auth) + el `Profesional` (+ horarios opcionales) |
+| GET | `/?ids=&activos=` | Listado / resumen (costura de Servicios) |
+| GET | `/:id` | Detalle completo con horarios. `404` si no existe |
+| GET | `/:id/horarios` | Franjas de atención (costura de Agenda) |
+| PUT | `/:id/horarios` | Reemplaza el set completo de horarios (RN07 + solapamiento) |
+| PATCH | `/:id` | Edición y baja lógica (`activo`) |
+| GET | `/por-usuario/:usuarioId` | Resuelve `sub` → `profesionalId` |
+
+`AuthClient` inyecta `AuthService` directo (Auth vive en el mismo proceso Nest, no hay costura HTTP real todavía) con degradación `lenient`/`strict` vía `PROFESIONALES_VALIDAR_AUTH`. Ver `docs/modulo-profesionales-requerimientos.md`.
+
 ## Project setup
 
 ```bash

@@ -6,7 +6,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { ProfesionalesPage } from './pages/Profesionalespage';
+import { ProfesionalesPage } from './pages/ProfesionalesPage';
 
 export function App() {
   return (
@@ -25,7 +25,6 @@ export function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="*" element={<NotFoundPage />} />
             <Route
               path="/profesionales"
               element={
@@ -34,6 +33,7 @@ export function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

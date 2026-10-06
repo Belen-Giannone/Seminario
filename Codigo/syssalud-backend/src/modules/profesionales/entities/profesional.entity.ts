@@ -3,38 +3,37 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  JoinColumn,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Usuario } from '../../auth/entities/usuario.entity'; // ajustá el path real
-import { HorarioAtencion } from '../../profesionales/entities/horario-atencion.entity';
+import { HorarioAtencion } from './horario-atencion.entity';
 
 /**
  * Datos de negocio de un profesional (especialidad, matrícula, horarios).
- * Vive separado de `Usuario` (que solo tiene credenciales) — mismo criterio
- * que se documentó para Pacientes en usuario.entity.ts.
+ * `usuarioId` es un uuid opaco a `Usuario` (Auth) — PRO-001: sin relación
+ * TypeORM cruzando módulos, sólo costura vía `AuthClient`. Nombre/email/dni
+ * viven en `Usuario` y se resuelven por esa costura (PRO-006).
  */
 @Entity('profesionales')
 export class Profesional {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Index({ unique: true })
-  @Column()
-  usuarioId: string;
-
-  @OneToOne(() => Usuario)
-  @JoinColumn({ name: 'usuarioId' })
-  usuario: Usuario;
+  /** Nullable mientras Auth está caído al momento del alta (PRO-002). */
+  @Index({ unique: true, where: '"usuarioId" IS NOT NULL' })
+  @Column({ type: 'uuid', nullable: true })
+  usuarioId: string | null;
 
   @Column()
   especialidad: string;
 
-  @Column({ nullable: true })
-  matricula: string | null;
+  @Index({ unique: true })
+  @Column()
+  matricula: string;
+
+  @Column({ default: true })
+  activo: boolean;
 
   @OneToMany(() => HorarioAtencion, (horario) => horario.profesional)
   horarios: HorarioAtencion[];

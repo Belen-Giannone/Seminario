@@ -25,7 +25,7 @@ const MODULOS: ModuloCard[] = [
   { nombre: 'Pacientes', descripcion: 'Registrar y buscar pacientes del centro.', cuu: 'CUU01', roles: [Rol.ASISTENTE] },
   { nombre: 'Historia clínica', descripcion: 'Consultas, observaciones y antecedentes.', cuu: 'CUU09', roles: [Rol.PROFESIONAL] },
   { nombre: 'Servicios', descripcion: 'Catálogo de servicios del centro.', cuu: 'CUU10', roles: [Rol.ASISTENTE] },
-  { nombre: 'Profesionales', descripcion: 'Alta y horarios de atención.', cuu: '—', roles: [Rol.ASISTENTE] },
+  { nombre: 'Profesionales', descripcion: 'Alta y horarios de atención.', cuu: '—', roles: [Rol.ASISTENTE, Rol.DUENO, Rol.PROFESIONAL] },
   { nombre: 'Métricas del negocio', descripcion: 'Ingresos, ocupación y desempeño del centro.', cuu: 'CUU07', roles: [Rol.DUENO] },
   { nombre: 'Métricas de desempeño', descripcion: 'Tu actividad: turnos, pacientes y horas.', cuu: 'CUU08', roles: [Rol.PROFESIONAL] },
 ];

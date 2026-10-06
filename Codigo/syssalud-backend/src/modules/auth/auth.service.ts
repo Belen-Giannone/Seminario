@@ -6,7 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { Repository } from 'typeorm';
+import { randomBytes } from 'crypto';
+import { In, Repository } from 'typeorm';
 import { AuthResponse, Rol, UsuarioPerfil } from '@syssalud/shared-types';
 import { Usuario } from './entities/usuario.entity';
 import { LoginDto } from './dto/login.dto';
@@ -56,8 +57,13 @@ export class AuthService {
 
   /** Login unificado para los cuatro roles del sistema (RN04, RN05). */
   async login(dto: LoginDto): Promise<AuthResponse> {
-    const usuario = await this.usuarios.findOne({ where: { email: dto.email } });
-    if (!usuario || !(await bcrypt.compare(dto.password, usuario.passwordHash))) {
+    const usuario = await this.usuarios.findOne({
+      where: { email: dto.email },
+    });
+    if (
+      !usuario ||
+      !(await bcrypt.compare(dto.password, usuario.passwordHash))
+    ) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
     return this.emitirSesion(usuario);
@@ -70,6 +76,59 @@ export class AuthService {
       throw new UnauthorizedException('El usuario ya no existe');
     }
     return this.aPerfil(usuario);
+  }
+
+  /**
+   * Alta administrativa de un usuario de cualquier rol (ASISTENTE/DUENO dan
+   * de alta PROFESIONAL, por ejemplo — PRO-012). Hoy Auth vive en el mismo
+   * proceso Nest (no hay microservicio separado), así que los módulos que lo
+   * necesitan importan `AuthModule` e inyectan este service directo en vez de
+   * pegarle a una ruta HTTP `/usuarios` que no existe.
+   * @throws {ConflictException} si el email o el DNI ya están en uso.
+   */
+  async crearUsuarioInterno(datos: {
+    nombre: string;
+    apellido: string;
+    email: string;
+    dni?: string;
+    rol: Rol;
+  }): Promise<UsuarioPerfil & { passwordInicial: string }> {
+    const existente = await this.usuarios.findOne({
+      where: datos.dni
+        ? [{ email: datos.email }, { dni: datos.dni }]
+        : [{ email: datos.email }],
+    });
+    if (existente) {
+      throw new ConflictException(
+        'Ya existe un usuario registrado con ese email o DNI',
+      );
+    }
+
+    const passwordInicial = this.generarPasswordInicial();
+    const passwordHash = await bcrypt.hash(passwordInicial, 10);
+    const usuario = await this.usuarios.save(
+      this.usuarios.create({
+        nombre: datos.nombre,
+        apellido: datos.apellido,
+        email: datos.email,
+        dni: datos.dni ?? null,
+        rol: datos.rol,
+        passwordHash,
+      }),
+    );
+
+    return { ...this.aPerfil(usuario), passwordInicial };
+  }
+
+  /** Resúmenes best-effort para costuras entrantes (Profesionales, Pacientes). */
+  async obtenerResumenesPorIds(ids: string[]): Promise<UsuarioPerfil[]> {
+    if (ids.length === 0) return [];
+    const usuarios = await this.usuarios.find({ where: { id: In(ids) } });
+    return usuarios.map((u) => this.aPerfil(u));
+  }
+
+  private generarPasswordInicial(): string {
+    return randomBytes(9).toString('base64url');
   }
 
   private async emitirSesion(usuario: Usuario): Promise<AuthResponse> {
