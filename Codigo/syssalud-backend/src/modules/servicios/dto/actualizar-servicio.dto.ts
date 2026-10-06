@@ -1,7 +1,5 @@
-import { PartialType } from '@nestjs/mapped-types';
 import { IsOptional, IsString, IsInt, IsPositive, IsNumber, Min, IsBoolean, IsArray, IsUUID, IsNotEmpty } from 'class-validator';
 import { ActualizarServicioRequest } from '@syssalud/shared-types';
-import { CrearServicioDto } from './crear-servicio.dto';
 
 /**
  * DTO para actualizar servicio (parcial)

@@ -6,6 +6,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { CatalogoServicios } from './pages/services/CatalogoServicios';
+import { ServicioForm } from './pages/services/ServicioForm';
 
 export function App() {
   return (
@@ -25,6 +27,30 @@ export function App() {
               }
             />
             <Route path="*" element={<NotFoundPage />} />
+            <Route
+              path="/staff/servicios"
+              element={
+                <ProtectedRoute>
+                  <CatalogoServicios />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/servicios/nuevo"
+              element={
+                <ProtectedRoute>
+                  <ServicioForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/servicios/:id/editar"
+              element={
+                <ProtectedRoute>
+                  <ServicioForm />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

@@ -1,9 +1,5 @@
-// packages/shared-types/src/dto/servicio.dto.ts
-/**
- * Contratos compartidos para el módulo Servicios
- *
- * SER-010, SER-012: Tipos exportados explícitamente para backend y frontend
- */
+/* Contratos compartidos para el módulo Servicios
+ * SER-010, SER-012: Tipos exportados explícitamente para backend y frontend */
 
 export interface ProfesionalResumen {
   id: string;
@@ -38,6 +34,17 @@ export interface CrearServicioRequest {
   profesionalIds: string[];
 }
 
-export interface ActualizarServicioRequest extends Partial<CrearServicioRequest> {
+export interface ActualizarServicioRequest {
+  nombre?: string;
+  descripcion?: string;
+  duracionMin?: number;
+  precio?: number;
+  profesionalIds?: string[];
   activo?: boolean;
+}
+
+export interface EstadoServiciosResponse {
+  modulo: string;
+  dependencias: Record<string, 'ok' | 'no-disponible'>;
+  modoValidacion: 'lenient' | 'strict';
 }

@@ -8,11 +8,12 @@ export type { UsuarioPerfil } from './dto/usuario.dto';
 export type { LoginRequest, RegisterPacienteRequest, AuthResponse } from './dto/auth.dto';
 
 export {
+  ProfesionalResumen,
   Servicio,
   ServicioResumen,
   CrearServicioRequest,
   ActualizarServicioRequest,
-  ProfesionalResumen,
+  EstadoServiciosResponse,
 } from './dto/servicio.dto';
 
 export {
