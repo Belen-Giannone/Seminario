@@ -1,13 +1,28 @@
 import type {
   ActualizarProfesionalRequest,
   AuthResponse,
+  BuscarHistoriaQuery,
+  CrearEntradaRequest,
+  CrearPacienteRequest,
   CrearProfesionalRequest,
   DefinirHorariosRequest,
+  EntradaCreadaResponse,
+  HistoriaClinica,
+  HistoriaClinicaInexistente,
   HorarioAtencion,
+  LiquidacionPago,
   LoginRequest,
+  Paciente,
+  PacienteResumen,
+  PagarTurnoRequest,
   Profesional,
   ProfesionalResumen,
   RegisterPacienteRequest,
+  ReprogramarTurnoRequest,
+  ResultadoBusquedaHistoria,
+  SolicitarTurnoRequest,
+  Turno,
+  TurnoResumen,
   UsuarioPerfil,
 } from '@syssalud/shared-types';
 
@@ -92,6 +107,83 @@ export const api = {
         { method: 'PUT', body: JSON.stringify(data) },
         token,
       ),
+  },
+
+  pacientes: {
+    buscar: (buscar: string, token: string) => {
+      const params = new URLSearchParams();
+      if (buscar.trim()) params.set('buscar', buscar.trim());
+      return request<PacienteResumen[]>(`/pacientes?${params}`, {}, token);
+    },
+    obtener: (id: string, token: string) =>
+      request<Paciente>(`/pacientes/${encodeURIComponent(id)}`, {}, token),
+    registrar: (data: CrearPacienteRequest, token: string) =>
+      request<Paciente>('/pacientes', { method: 'POST', body: JSON.stringify(data) }, token),
+  },
+
+  historiaClinica: {
+    buscar: (query: BuscarHistoriaQuery, token: string) => {
+      const params = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value?.trim()) params.set(key, value.trim());
+      });
+      return request<ResultadoBusquedaHistoria>(`/historia-clinica?${params}`, {}, token);
+    },
+    obtener: (pacienteId: string, token: string) =>
+      request<HistoriaClinica | HistoriaClinicaInexistente>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}`,
+        {},
+        token,
+      ),
+    inicializar: (pacienteId: string, token: string) =>
+      request<HistoriaClinica>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}`,
+        { method: 'POST' },
+        token,
+      ),
+    agregarEntrada: (pacienteId: string, data: CrearEntradaRequest, token: string) =>
+      request<EntradaCreadaResponse>(
+        `/historia-clinica/${encodeURIComponent(pacienteId)}/entradas`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+  },
+
+  turnos: {
+    solicitar: (data: SolicitarTurnoRequest, token: string) =>
+      request<{ turno: Turno; liquidacion: LiquidacionPago }>(
+        '/turnos',
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+    pagar: (id: string, data: PagarTurnoRequest, token: string) =>
+      request<Turno>(`/turnos/${encodeURIComponent(id)}/pago`, { method: 'POST', body: JSON.stringify(data) }, token),
+    listar: (
+      query: { pacienteId?: string; profesionalId?: string; estado?: string; desde?: string; hasta?: string },
+      token: string,
+    ) => {
+      const params = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value?.trim()) params.set(key, value.trim());
+      });
+      return request<TurnoResumen[]>(`/turnos?${params}`, {}, token);
+    },
+    obtener: (id: string, token: string) => request<Turno>(`/turnos/${encodeURIComponent(id)}`, {}, token),
+    misTurnos: (token: string) => request<TurnoResumen[]>('/turnos/mis-turnos', {}, token),
+    cancelar: (id: string, motivo: string | undefined, token: string) =>
+      request<Turno>(
+        `/turnos/${encodeURIComponent(id)}/cancelar`,
+        { method: 'POST', body: JSON.stringify(motivo ? { motivo } : {}) },
+        token,
+      ),
+    reprogramar: (id: string, data: ReprogramarTurnoRequest, token: string) =>
+      request<Turno>(
+        `/turnos/${encodeURIComponent(id)}/reprogramar`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+    marcarAsistencia: (id: string, token: string) =>
+      request<Turno>(`/turnos/${encodeURIComponent(id)}/asistencia`, { method: 'POST' }, token),
   },
 };
 

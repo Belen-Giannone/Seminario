@@ -1,11 +1,13 @@
 /**
- * Estados del turno según la máquina de estados (ART ME).
+ * Estados del turno según la máquina de estados (ART ME, TUR-007).
+ * `SOLICITADO` (reserva temporal) → `CONFIRMADO` | `NO_CONFIRMADO`;
+ * `CONFIRMADO` → `REPROGRAMADO` | `CANCELADO` | `ASISTIDO`.
  */
 export enum EstadoTurno {
-  RESERVADO = 'RESERVADO',
+  SOLICITADO = 'SOLICITADO',
   CONFIRMADO = 'CONFIRMADO',
+  NO_CONFIRMADO = 'NO_CONFIRMADO',
   REPROGRAMADO = 'REPROGRAMADO',
   CANCELADO = 'CANCELADO',
-  CANCELADO_SIN_DEVOLUCION = 'CANCELADO_SIN_DEVOLUCION',
-  FINALIZADO = 'FINALIZADO',
+  ASISTIDO = 'ASISTIDO',
 }

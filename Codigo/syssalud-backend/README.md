@@ -25,6 +25,40 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Módulo Historia Clínica (`/api/historia-clinica`)
+
+CUU09 — Gestionar historia clínica. **Acceso exclusivo del rol `PROFESIONAL`** (RN10); la HC es propiedad del paciente y hay una sola por paciente (RN02). El módulo no tiene consumidores REST por diseño: ningún otro módulo lee la HC.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/_estado` | Readiness de las costuras Pacientes/Turnos y modo de validación (sin datos clínicos) |
+| GET | `/?dni=` o `/?nombre=&apellido=` | Busca el paciente y devuelve su HC, `{ existe:false }` o la lista para desambiguar |
+| GET | `/:pacienteId` | HC completa del paciente |
+| POST | `/:pacienteId` | Inicializa la HC en blanco (idempotente) |
+| POST | `/:pacienteId/entradas` | Agrega una entrada (append-only) |
+
+Variables de entorno: `PACIENTES_API_URL`, `TURNOS_API_URL`, `HISTORIA_VALIDAR_TURNOS` (`lenient` por defecto | `strict`). Ver `docs/modulo-historia-clinica-requerimientos.md`.
+
+## Módulo Turnos (`/api/turnos`)
+
+CUU02 — Solicitar turno · CUU03 — Cancelar turno · CUU04 — Reprogramar turno. Orquesta las 6 costuras salientes (Pacientes, Servicios, Profesionales, Agenda, Pagos, Notificaciones) sin acoplamiento en proceso (TUR-001): todo por REST, con degradación elegante cuando una costura no responde.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/_estado` | Readiness de las 6 costuras y modo de validación |
+| POST | `/` | Solicita un turno (CUU02 pasos 3-4): valida RN06/RN07/RN09/RN19, calcula el monto, reserva en `SOLICITADO` |
+| POST | `/:id/pago` | Paga y confirma (CUU02 paso 5, RN11/RN16/RN20); idempotente por `idTransaccion` |
+| GET | `/` | Listado filtrado por rol (`?pacienteId=&profesionalId=&estado=&desde=&hasta=`); la consumen Agenda, Historia Clínica y Métricas |
+| GET | `/mis-turnos` | Atajo del paciente: sus turnos vigentes (`turnos_vigentes`) |
+| GET | `/:id` | Detalle (403 si no es propio) |
+| POST | `/:id/cancelar` | CUU03: RN12/RN13/RN22 (plazo de 24h para el paciente), ajusta reembolso (RN21/RN23) |
+| POST | `/:id/reprogramar` | CUU04: mismo servicio/profesional, RN12/RN13 + disponibilidad |
+| POST | `/:id/asistencia` | Marca `ASISTIDO` (precondición de Historia Clínica y Métricas) |
+
+Nota de diseño: los flags `lenient`/`strict` sólo rigen cuando una costura está **caída** (timeout/conexión); una respuesta explícita de una costura que sí contesta (p. ej. "paciente no registrado", "slot ocupado") siempre se respeta. Profesionales/Servicios son siempre best-effort (sin flag propio).
+
+Variables de entorno: `PACIENTES_API_URL`, `SERVICIOS_API_URL`, `PROFESIONALES_API_URL`, `AGENDA_API_URL`, `PAGOS_API_URL`, `NOTIFICACIONES_API_URL`, `TURNOS_VALIDAR_AGENDA`, `TURNOS_VALIDAR_PACIENTES` (`lenient` por defecto | `strict`), `TURNOS_RESERVA_MIN` (default 15). Ver `docs/modulo-turnos-requerimientos.md`.
+
 ## Módulo Profesionales (`/api/profesionales`)
 
 Alta y mantenimiento de profesionales médicos y sus horarios de atención (RN07: sólo lunes a viernes). Sin CUU propio; es insumo de Servicios (`SER-021`), Agenda, Turnos y Métricas.

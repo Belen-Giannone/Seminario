@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Rol, UsuarioPerfil } from '@syssalud/shared-types';
-import { AuthService } from '../../auth/auth.service';
+import { Rol } from '@syssalud/shared-types';
+import { AuthService, UsuarioResumen } from '../../auth/auth.service';
 
-export interface CrearUsuarioResponse extends UsuarioPerfil {
+export type { UsuarioResumen } from '../../auth/auth.service';
+
+export interface CrearUsuarioResponse extends UsuarioResumen {
   passwordInicial: string;
 }
 
@@ -10,6 +12,10 @@ export interface CrearUsuarioResponse extends UsuarioPerfil {
  * Costura hacia Auth (PRO-020). Auth vive en el mismo proceso Nest, así que
  * se llama directo a `AuthService` en vez de a una ruta HTTP `/usuarios` que
  * no existe (mismo criterio que `pacientes/clients/auth.client.ts`).
+ *
+ * `crearUsuarioInterno` pide `dni`/`fechaNacimiento`/`telefono`/`domicilio`
+ * porque ese es el contrato que ya usa Pacientes — Profesionales no los
+ * recolecta en su alta, así que viajan vacíos (`Usuario` los tiene nullable).
  */
 @Injectable()
 export class AuthClient {
@@ -26,7 +32,13 @@ export class AuthClient {
   }): Promise<CrearUsuarioResponse | null> {
     try {
       return await this.authService.crearUsuarioInterno({
-        ...datos,
+        nombre: datos.nombre,
+        apellido: datos.apellido,
+        email: datos.email,
+        dni: datos.dni ?? '',
+        fechaNacimiento: '',
+        telefono: '',
+        domicilio: '',
         rol: Rol.PROFESIONAL,
       });
     } catch (error) {
@@ -37,7 +49,7 @@ export class AuthClient {
     }
   }
 
-  async obtenerUsuarios(ids: string[]): Promise<UsuarioPerfil[]> {
+  async obtenerUsuarios(ids: string[]): Promise<UsuarioResumen[]> {
     if (ids.length === 0) return [];
     try {
       return await this.authService.obtenerResumenesPorIds(ids);
