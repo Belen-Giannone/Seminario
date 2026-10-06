@@ -25,13 +25,13 @@ describe('TurnosClient', () => {
       );
     const client = new TurnosClient(config as never);
 
-    await expect(
-      client.turnosAsistidos('paciente-1', 'profesional-1', AUTH),
-    ).resolves.toEqual([{ idTurno: 'turno-1', fecha: '2026-09-14' }]);
+    await expect(client.turnosAsistidos('paciente-1', AUTH)).resolves.toEqual([
+      { idTurno: 'turno-1', fecha: '2026-09-14' },
+    ]);
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toContain('pacienteId=paciente-1');
-    expect(url).toContain('profesionalId=profesional-1');
+    expect(url).not.toContain('profesionalId');
     expect(url).toContain('estado=ASISTIDO');
     expect(init.headers).toEqual({ Authorization: AUTH });
   });
@@ -42,17 +42,17 @@ describe('TurnosClient', () => {
       .mockResolvedValue(respuesta(200, { modulo: 'turnos' }));
     const client = new TurnosClient(config as never);
 
-    await expect(
-      client.turnosAsistidos('paciente-1', 'profesional-1', AUTH),
-    ).rejects.toThrow('Respuesta inválida de Turnos');
+    await expect(client.turnosAsistidos('paciente-1', AUTH)).rejects.toThrow(
+      'Respuesta inválida de Turnos',
+    );
   });
 
   it('propaga timeout para que el service aplique el modo', async () => {
     jest.spyOn(global, 'fetch').mockRejectedValue(new Error('timeout'));
     const client = new TurnosClient(config as never);
 
-    await expect(
-      client.turnosAsistidos('paciente-1', 'profesional-1', AUTH),
-    ).rejects.toThrow('timeout');
+    await expect(client.turnosAsistidos('paciente-1', AUTH)).rejects.toThrow(
+      'timeout',
+    );
   });
 });

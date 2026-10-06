@@ -10,6 +10,7 @@ import { randomBytes } from 'crypto';
 import { In, Repository } from 'typeorm';
 import { AuthResponse, Rol, UsuarioPerfil } from '@syssalud/shared-types';
 import { Usuario } from './entities/usuario.entity';
+import { PacientesClient } from './clients/pacientes.client';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -38,6 +39,7 @@ export class AuthService {
     @InjectRepository(Usuario)
     private readonly usuarios: Repository<Usuario>,
     private readonly jwtService: JwtService,
+    private readonly pacientesClient: PacientesClient,
   ) {}
 
   /** CUU01 - camino alternativo 2.a: el paciente se registra por sí mismo. */
@@ -67,7 +69,9 @@ export class AuthService {
       }),
     );
 
-    return this.emitirSesion(usuario);
+    const sesion = await this.emitirSesion(usuario);
+    await this.asegurarPerfilPaciente(usuario, sesion.accessToken);
+    return sesion;
   }
 
   /**
@@ -145,7 +149,37 @@ export class AuthService {
     ) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
-    return this.emitirSesion(usuario);
+    const sesion = await this.emitirSesion(usuario);
+    // Repara pacientes registrados sin perfil (alta previa a PAC-013 o Pacientes caído).
+    if (usuario.rol === Rol.PACIENTE) {
+      await this.asegurarPerfilPaciente(usuario, sesion.accessToken);
+    }
+    return sesion;
+  }
+
+  /**
+   * PAC-013: crea (idempotente) el perfil en Pacientes del usuario PACIENTE.
+   * Sin los datos personales completos no se intenta: Pacientes los exige.
+   */
+  private async asegurarPerfilPaciente(
+    usuario: Usuario,
+    accessToken: string,
+  ): Promise<void> {
+    const { dni, fechaNacimiento, telefono, domicilio } = usuario;
+    if (!dni || !fechaNacimiento || !telefono || !domicilio) return;
+    await this.pacientesClient.altaPerfil(
+      {
+        usuarioId: usuario.id,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        dni,
+        fechaNacimiento,
+        telefono,
+        domicilio,
+        email: usuario.email,
+      },
+      accessToken,
+    );
   }
 
   /** Recupera el perfil actualizado a partir del payload del JWT (GET /auth/me). */

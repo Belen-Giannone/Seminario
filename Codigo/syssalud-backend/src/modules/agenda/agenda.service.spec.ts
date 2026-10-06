@@ -232,6 +232,42 @@ describe('AgendaService', () => {
       expect(slots).toEqual([{ fecha: '2026-09-14', hora: '09:15' }]);
     });
 
+    it('descuenta la duración completa de los turnos tomados según su servicio', async () => {
+      profesionalesClient.horariosDe.mockResolvedValue([
+        {
+          id: 'h1',
+          profesionalId: 'p1',
+          diaSemana: 1,
+          horaInicio: '09:00',
+          horaFin: '10:00',
+        },
+      ]);
+      turnosClient.ocupacion.mockResolvedValue({
+        turnos: [
+          {
+            idTurno: 't1',
+            fecha: '2026-09-14',
+            hora: '09:00',
+            estado: EstadoTurno.CONFIRMADO,
+            servicioId: 'largo',
+          },
+        ],
+        parcial: false,
+      });
+      serviciosClient.obtener.mockImplementation((id: string) =>
+        Promise.resolve(
+          id === 'largo' ? { duracionMin: 45, nombre: 'Peeling' } : null,
+        ),
+      );
+
+      const slots = await service.disponibilidad('p1', {
+        servicioId: 's1',
+        fecha: '2026-09-14',
+      });
+
+      expect(slots).toEqual([{ fecha: '2026-09-14', hora: '09:45' }]);
+    });
+
     it('sin horarios del profesional, la disponibilidad queda vacía (RN19)', async () => {
       profesionalesClient.horariosDe.mockResolvedValue(null);
 

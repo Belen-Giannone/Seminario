@@ -56,6 +56,26 @@ export interface CalcularDisponibilidadParams {
 }
 
 /**
+ * Bloques que ocupa cada turno tomado (RN09): no sólo su inicio sino toda la
+ * duración de su servicio. Un turno de 45 min a las 09:00 ocupa 09:00, 09:15
+ * y 09:30, así no se ofrece un horario superpuesto.
+ */
+export function bloquesOcupados(
+  turnos: { fecha: string; hora: string; duracionMin: number }[],
+  bloqueMin: number,
+): Set<string> {
+  const ocupados = new Set<string>();
+  for (const turno of turnos) {
+    const inicio = minutosDesdeMedianoche(turno.hora);
+    const duracion = Math.max(turno.duracionMin, bloqueMin);
+    for (let t = inicio; t < inicio + duracion; t += bloqueMin) {
+      ocupados.add(`${turno.fecha} ${formatearHora(t)}`);
+    }
+  }
+  return ocupados;
+}
+
+/**
  * Rejilla de slots libres para un rango de fechas (AGE-006/007/008).
  * Excluye fines de semana (RN07) y feriados (RN08); descuenta ocupación (RN09);
  * sólo ofrece inicios de bloque cuyo bloque completo (`duracionMin`) entra antes

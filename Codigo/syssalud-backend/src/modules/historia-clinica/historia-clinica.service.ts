@@ -204,7 +204,6 @@ export class HistoriaClinicaService {
 
     const turnoId = await this.resolverTurno(
       pacienteId,
-      profesionalId,
       dto.turnoId,
       authorization,
     );
@@ -230,7 +229,6 @@ export class HistoriaClinicaService {
    */
   private async resolverTurno(
     pacienteId: string,
-    profesionalId: string,
     turnoIdSolicitado: string | undefined,
     authorization: string,
   ): Promise<string | null> {
@@ -238,7 +236,6 @@ export class HistoriaClinicaService {
     try {
       turnos = await this.turnosClient.turnosAsistidos(
         pacienteId,
-        profesionalId,
         authorization,
       );
     } catch {

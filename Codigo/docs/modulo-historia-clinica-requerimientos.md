@@ -104,7 +104,7 @@ Crea la `HistoriaClinica` en blanco vinculada al paciente. Idempotente. `201`.
 `buscar(criterio): Promise<PacienteResumen[]>` → `GET /api/pacientes?buscar=`; `obtener(id): Promise<Paciente>` → `GET /api/pacientes/:id` (para `nomAppPac`, `telefono`, `correo`). Base URL `PACIENTES_API_URL`. Degradación: si no responde, `GET /:pacienteId` sigue sirviendo la HC con datos personales `null` + `WARN`; el buscador devuelve `503`/`424` según modo.
 
 ### HCL-018 — `TurnosClient`
-`turnosAsistidos(pacienteId, profesionalId): Promise<{ idTurno; fecha }[]>` → `GET /api/turnos?pacienteId=&profesionalId=&estado=ASISTIDO`. Degradación: en `lenient` se omite la validación de precondición y se permite la entrada con `turnoId` nulo + `WARN`; en `strict`, `424` si no hay turno asistido.
+`turnosAsistidos(pacienteId): Promise<{ idTurno; fecha }[]>` → `GET /api/turnos?pacienteId=&estado=ASISTIDO` con el JWT del profesional (Turnos ya limita al PROFESIONAL a sus propios turnos; el `sub` es el id de `Usuario`, no del `Profesional`). Degradación: en `lenient` se omite la validación de precondición y se permite la entrada con `turnoId` nulo + `WARN`; en `strict`, `424` si no hay turno asistido.
 
 ---
 

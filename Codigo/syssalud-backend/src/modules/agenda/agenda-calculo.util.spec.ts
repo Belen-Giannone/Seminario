@@ -1,5 +1,6 @@
 import { DiaSemana, HorarioAtencion } from '@syssalud/shared-types';
 import {
+  bloquesOcupados,
   calcularDisponibilidad,
   diaIsoSemana,
   enumerarFechas,
@@ -31,6 +32,34 @@ describe('agenda-calculo.util', () => {
         '2026-09-15',
         '2026-09-16',
       ]);
+    });
+  });
+
+  describe('bloquesOcupados (RN09)', () => {
+    it('un turno ocupa todos los bloques de la duración de su servicio', () => {
+      expect(
+        bloquesOcupados([{ fecha: LUNES, hora: '09:00', duracionMin: 45 }], 15),
+      ).toEqual(
+        new Set([`${LUNES} 09:00`, `${LUNES} 09:15`, `${LUNES} 09:30`]),
+      );
+    });
+
+    it('evita ofrecer un horario superpuesto con un turno largo', () => {
+      const slots = calcularDisponibilidad({
+        horarios: [{ diaSemana: 1, horaInicio: '09:00', horaFin: '10:30' }],
+        ocupados: bloquesOcupados(
+          [{ fecha: LUNES, hora: '09:00', duracionMin: 45 }],
+          15,
+        ),
+        feriados: new Set(),
+        desde: LUNES,
+        hasta: LUNES,
+        duracionMin: 30,
+        bloqueMin: 15,
+      });
+
+      // 09:15 y 09:30 caerían dentro del turno de 09:00-09:45.
+      expect(slots.map((s) => s.hora)).toEqual(['09:45', '10:00']);
     });
   });
 

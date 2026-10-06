@@ -17,7 +17,7 @@ import { ProfesionalesClient } from './clients/profesionales.client';
 import { TurnosClient } from './clients/turnos.client';
 import { ServiciosClient } from './clients/servicios.client';
 import { FeriadosClient } from './clients/feriados.client';
-import { calcularDisponibilidad } from './agenda-calculo.util';
+import { bloquesOcupados, calcularDisponibilidad } from './agenda-calculo.util';
 import { ConsultarAgendaQueryDto } from './dto/consultar-agenda.dto';
 import { DisponibilidadQueryDto } from './dto/disponibilidad.dto';
 
@@ -216,8 +216,9 @@ export class AgendaService {
       );
     }
 
-    const ocupados = new Set(
-      ocupacion.turnos.map((turno) => `${turno.fecha} ${turno.hora}`),
+    const ocupados = bloquesOcupados(
+      await this.conDuracion(ocupacion.turnos),
+      BLOQUE_AGENDA_MIN,
     );
 
     const slots = calcularDisponibilidad({
@@ -232,6 +233,34 @@ export class AgendaService {
 
     this.guardarCache(cacheKey, slots);
     return slots;
+  }
+
+  /**
+   * Duración de cada turno tomado según su servicio (una consulta por servicio
+   * distinto). Sin dato de Servicios se asume un bloque de agenda (AGE-002).
+   */
+  private async conDuracion(
+    turnos: TurnoResumen[],
+  ): Promise<{ fecha: string; hora: string; duracionMin: number }[]> {
+    const servicioIds = [
+      ...new Set(turnos.map((t) => t.servicioId).filter(Boolean)),
+    ];
+    const duraciones = new Map(
+      await Promise.all(
+        servicioIds.map(
+          async (id) =>
+            [
+              id,
+              (await this.serviciosClient.obtener(id))?.duracionMin,
+            ] as const,
+        ),
+      ),
+    );
+    return turnos.map((t) => ({
+      fecha: t.fecha,
+      hora: t.hora,
+      duracionMin: duraciones.get(t.servicioId) ?? BLOQUE_AGENDA_MIN,
+    }));
   }
 
   /** Caché corta por (recurso, rango) para no golpear las costuras en cada request (AGE-019). */

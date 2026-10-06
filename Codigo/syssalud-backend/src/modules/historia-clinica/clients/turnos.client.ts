@@ -16,16 +16,16 @@ export class TurnosClient {
 
   constructor(private readonly config: ConfigService) {}
 
+  /**
+   * Turnos ASISTIDO del paciente con el profesional logueado. No se manda
+   * `profesionalId`: el `sub` del JWT es el id de `Usuario`, no del
+   * `Profesional`, y Turnos ya restringe al rol PROFESIONAL a sus propios turnos.
+   */
   async turnosAsistidos(
     pacienteId: string,
-    profesionalId: string,
     authorization: string,
   ): Promise<TurnoAsistido[]> {
-    const query = new URLSearchParams({
-      pacienteId,
-      profesionalId,
-      estado: 'ASISTIDO',
-    });
+    const query = new URLSearchParams({ pacienteId, estado: 'ASISTIDO' });
     try {
       const response = await fetch(`${this.baseUrl()}/turnos?${query}`, {
         headers: { Authorization: authorization },
