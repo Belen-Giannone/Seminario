@@ -8,6 +8,8 @@ import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { PacientesPage } from './pages/PacientesPage';
+import { MisTurnosPage } from './pages/MisTurnosPage';
+import { SolicitarTurnoPage } from './pages/SolicitarTurnoPage';
 
 export function App() {
   return (
@@ -39,6 +41,22 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <PacientesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/turnos"
+              element={
+                <ProtectedRoute>
+                  <MisTurnosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/turnos/nuevo"
+              element={
+                <ProtectedRoute>
+                  <SolicitarTurnoPage />
                 </ProtectedRoute>
               }
             />

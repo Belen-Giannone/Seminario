@@ -6,11 +6,17 @@ import type {
   EntradaCreadaResponse,
   HistoriaClinica,
   HistoriaClinicaInexistente,
+  LiquidacionPago,
   LoginRequest,
   Paciente,
   PacienteResumen,
+  PagarTurnoRequest,
   RegisterPacienteRequest,
+  ReprogramarTurnoRequest,
   ResultadoBusquedaHistoria,
+  SolicitarTurnoRequest,
+  Turno,
+  TurnoResumen,
   UsuarioPerfil,
 } from '@syssalud/shared-types';
 
@@ -106,6 +112,42 @@ export const api = {
         { method: 'POST', body: JSON.stringify(data) },
         token,
       ),
+  },
+  turnos: {
+    solicitar: (data: SolicitarTurnoRequest, token: string) =>
+      request<{ turno: Turno; liquidacion: LiquidacionPago }>(
+        '/turnos',
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+    pagar: (id: string, data: PagarTurnoRequest, token: string) =>
+      request<Turno>(`/turnos/${encodeURIComponent(id)}/pago`, { method: 'POST', body: JSON.stringify(data) }, token),
+    listar: (
+      query: { pacienteId?: string; profesionalId?: string; estado?: string; desde?: string; hasta?: string },
+      token: string,
+    ) => {
+      const params = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value?.trim()) params.set(key, value.trim());
+      });
+      return request<TurnoResumen[]>(`/turnos?${params}`, {}, token);
+    },
+    obtener: (id: string, token: string) => request<Turno>(`/turnos/${encodeURIComponent(id)}`, {}, token),
+    misTurnos: (token: string) => request<TurnoResumen[]>('/turnos/mis-turnos', {}, token),
+    cancelar: (id: string, motivo: string | undefined, token: string) =>
+      request<Turno>(
+        `/turnos/${encodeURIComponent(id)}/cancelar`,
+        { method: 'POST', body: JSON.stringify(motivo ? { motivo } : {}) },
+        token,
+      ),
+    reprogramar: (id: string, data: ReprogramarTurnoRequest, token: string) =>
+      request<Turno>(
+        `/turnos/${encodeURIComponent(id)}/reprogramar`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+    marcarAsistencia: (id: string, token: string) =>
+      request<Turno>(`/turnos/${encodeURIComponent(id)}/asistencia`, { method: 'POST' }, token),
   },
 };
 

@@ -30,3 +30,12 @@ export type {
   ResultadoBusquedaHistoria,
 } from './dto/historia-clinica.dto';
 export { historiaClinicaFixture } from './dto/historia-clinica.dto';
+export type {
+  Turno,
+  TurnoResumen,
+  SolicitarTurnoRequest,
+  LiquidacionPago,
+  PagarTurnoRequest,
+  ReprogramarTurnoRequest,
+} from './dto/turno.dto';
+export { turnoFixture, liquidacionPagoFixture } from './dto/turno.dto';
